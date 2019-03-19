@@ -1,0 +1,11 @@
+# Site settings
+title: twilco
+email: tyler.l.wilcock@gmail.com
+description: > # this means to ignore newlines until "baseurl:"
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "https://github.com/twilco" # the base hostname & protocol for your site
+twitter_username: tylerwilcock 
+github_username: twilco
+
+# Build settings
+markdown: kramdown
