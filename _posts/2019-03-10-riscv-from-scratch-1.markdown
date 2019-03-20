@@ -5,13 +5,13 @@ date:   2019-03-10 12:42:53
 categories: riscv toolchain
 ---
 
-Welcome to part one of *RISC-V from scratch!*  Throughout this series, we will utilize RISC-V and it's ecosystem to explore various low-level tools and concepts, such as linkers, runtimes and startup routines, assembly, and lots more.  I am a web developer by trade, and as such I'm not exposed to these things on a daily basis.  However, I think they are very interesting - hence this series!  Join me on a very much unstructured journey into the depths of all things low-level.
+Welcome to part one of *RISC-V from scratch!*  Throughout this series, we will utilize RISC-V and its ecosystem to explore various low-level tools and concepts, such as linkers, runtimes and startup routines, assembly, and lots more.  I am a web developer by trade, and as such I'm not exposed to these things on a daily basis.  However, I think they are very interesting - hence this series!  Join me on a very much unstructured journey into the depths of all things low-level.
 
 In this first post, we'll talk a little bit about what RISC-V is, why it's important, and finish up by setting up a RISC-V toolchain and building and running a simple RISC-V program.
 
 ### So what is RISC-V?
 
-RISC-V is an open-source, free-to-use ISA that began as a project at UC-Berkeley in 2010.  The free-to-use aspect has been instrumental in its success and is quite a stark contrast to many other architectures.  Take ARM for example - in order to create an ARM-compatible processor, you must pay an upfront fee of [$1M - $10M as well as a 0.5% - 2% royalty fee per-chip](https://www.anandtech.com/show/7112/the-arm-diaries-part-1-how-arms-business-model-works/2).  This free and open model makes RISC-V an attractive option to many groups of people - hardware startups who can't foot the bill to create an ARM (or whatever other) processor, academic institutions, and (obviously) the open-source community.
+RISC-V is an open-source, free-to-use ISA that began as a project at UC-Berkeley in 2010.  The free-to-use aspect has been instrumental in its success and is quite a stark contrast to many other architectures.  Take ARM for example - in order to create an ARM-compatible processor, you must pay an upfront fee of [$1M - $10M as well as a 0.5% - 2% royalty fee per-chip](https://www.anandtech.com/show/7112/the-arm-diaries-part-1-how-arms-business-model-works/2).  This free and open model makes RISC-V an attractive option to many groups of people - hardware startups who can't foot the bill to create an ARM or other licensing-required processor, academic institutions, and (obviously) the open-source community.
 
 RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now-taken down website](https://abopen.com/news/rattled-arm-launches-anti-risc-v-marketing-campaign/) that attempted (rather unsuccessfully) to highlight supposed benefits of ARM over RISC-V.  RISC-V is backed by [a ton of major companies](https://riscv.org/members-at-a-glance/), including Google, Nvidia, and Western Digital.
 
