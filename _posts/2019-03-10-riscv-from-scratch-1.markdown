@@ -93,4 +93,6 @@ Hello, World!
 
 This is a great start, but my goal with these blog posts is to truly [shave the yak](https://seths.blog/2005/03/dont_shave_that/), and while we have confirmed that we have a working toolchain, there is a lot of magic hidden by the niceties of the `freedom-e-sdk` examples.  Note that we didn't have to set up any linker files or startup code - SiFive's provided board-support linker scripts, various Makefiles, and the [freedom-metal library](https://github.com/sifive/freedom-metal) take care of this for us.  
 
-In part two of this series we'll make our own way by creating our own linker file and a basic runtime to get us to `main()`.  We will also begin exploring some basic RISC-V assembly.
+In part two of this series we'll break free from the `freedom-e-sdk` and make our own way.  We'll partially craft and examine a linker file and create a basic runtime to set up our stack, get us to `main()`, and more.  We'll also begin exploring some basic RISC-V assembly.
+
+The next post in this series has been posted, [click here to check it out.]({% post_url 2019-03-27-riscv-from-scratch-2 %})
