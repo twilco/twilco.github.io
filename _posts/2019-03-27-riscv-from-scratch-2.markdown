@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "RISC-V from scratch 2: TODO FILL THIS"
-date:   2019-03-27 12:42:53
+title:  "RISC-V from scratch 2: Hardware layouts, linker scripts, and C runtimes"
+date:   2019-04-27 12:42:53
 categories: riscv toolchain
 ---
 
@@ -9,10 +9,7 @@ Welcome to the second post of the *RISC-V from scratch* series!  As a quick reca
 
 The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C program on an emulated or physical RISC-V processor.  We didn't have to worry about setting up any linker scripts or writing a runtime, which (for C and other languages with minimal runtimes) initializes our stack, calls our `main` function, and more.  This is great if you're looking to quickly become productive, but these details are exactly the sort of thing we want to learn about!
 
-TODO: Fix this section.  Will this be one post or two?
-In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` machine.
-
-This means examining, and to a lesser extent modifying, linker scripts, writing a runtime to get our program setup and running, and finally invoking GDB and stepping through and running our program.
+In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program setup and running, and finally invoke GDB and step through our program.
 
 ### The naive approach 
 
@@ -21,10 +18,10 @@ Let's start our journey with a simple C program that adds two numbers together i
 {% highlight bash %}
 $ cat add.c
 int main() {
-    int x = 9;
-    int v = 1;
+    int a = 4;
+    int b = 12;
     while (1) {
-        int q = x + v;
+        int c = a + b;
     }
     return 0;
 }
@@ -92,7 +89,7 @@ And now we should be able to set some breakpoints:
 {% highlight bash %}
 (gdb) b main
 Breakpoint 1 at 0x1018e: file add.c, line 2.
-(gdb) b 5 # this is the line within the forever-while loop. int q = x + v;
+(gdb) b 5 # this is the line within the forever-while loop. int c = a + b;
 Breakpoint 2 at 0x1019a: file add.c, line 5.
 {% endhighlight %}
 
@@ -391,11 +388,19 @@ Here we finally make use the `__stack_top` symbol we worked so tirelessly to cre
 
 Next, `add s0, sp, zero` adds together the value of the `sp` register with the value of the `zero` register (which is actually the `x0` register, hardwired to 0), and finally places it into the `s0` register.  `s0` is a [special register](https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md#general-registers) in a few ways.  First, it is what is known as a "saved register" meaning it is preserved across function calls.  Second, `s0` sometimes acts as the frame pointer, which enables each function invocation to maintain it's own little space on the stack for storing parameters passed into that function.  How function calls work with the stack and frame pointers is a very interesting subject and could easily be a full-length post on it's own, but for now just know that initializing our frame pointer `s0` is an important task for our runtime.
 
-The next instruction we see is `jal zero, main`.  `jal` stands for "`j`ump `a`nd `l`ink", and expects operands in the form of `jal rd (destination register), offset_address`.  Functionally, `jal` writes the value of the next instruction (the `pc` register plus four) to the `rd`, and then sets the `pc` register to the current value of `pc` plus the [sign-extended](https://en.wikipedia.org/wiki/Sign_extension) offset, effectively "calling" that address.  
+The next instruction we see is `jal zero, main`.  `jal` stands for "`j`ump `a`nd `l`ink", and expects operands in the form of `jal rd (destination register), offset_address`.  Functionally, `jal` writes the value of the next instruction (the `pc` register plus four) to the `rd`, and then sets the `pc` register to the current value of `pc` plus the [sign-extended](https://en.wikipedia.org/wiki/Sign_extension) offset, effectively "calling" that address.
 
-With this in mind, you may think it's odd that we're using the `zero` register, which RISC-V assemblers interpret as the `x0` register, as our destination register.  Well, as mentioned in the previous paragraph, `x0` is hardwired to the literal value of `0`, and writes to it have no effect.  This effectively creates an unconditional jump to `offset_address`.  Why do it this way, you may wonder...don't other ISAs have an explicit unconditional jump instruction?  This odd `jal zero, offset_address` pattern is actually a clever optimization enabled by the dedication of a hard-wired zero register.  Each supported instruction means a larger, and therefore more expensive, processor, so the simpler the ISA the better.  Rather than polluting the instruction space with both a `jal` and `explicit jump`, the RISC-V ISA only calls for `jal`, but through `jal zero, main` supports unconditional jumps.  
+As mentioned in the previous paragraph, `x0` is hardwired to the literal value of `0`, and writes to it have no effect.  With this in mind, you may think it's odd that we're using the `zero` register, which RISC-V assemblers interpret as the `x0` register, as our destination register, since this effectively creates an unconditional and side-effect free jump to `offset_address`.  Why do it this way, you may wonder...don't other ISAs have an explicit unconditional jump instruction?  This odd `jal zero, offset_address` pattern is actually a clever optimization enabled by the dedication of one whole register to a hard-wired zero.  Each supported instruction means a larger, and therefore more expensive, processor, so the simpler the ISA the better.  Rather than polluting the instruction space with both `jal` and `unconditional jump` instructions, the RISC-V ISA only calls for `jal`, but through `jal zero, main` supports unconditional jumps.  
 
-There are many, many similar optimizations in RISC-V, many taking the form of what are known as [pseudoinstructions](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html), which were briefly mentioned up a few paragraphs.  Pseudoinstructions are instructions that assemblers know how to translate to other actual hardware-implemented instructions.  For example, there is an unconditional jump pseudoinstruction `j offset_address`, which RISC-V assemblers translate to `jal zero, offset_address`.  For a full list of officially supported pseudoinstructions, search for pseudoinstruction [here in v2.2 of the RISC-V spec.](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf)
+There are many, many similar optimizations in RISC-V, most taking the form of what are known as [pseudoinstructions](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html), which were briefly mentioned up a few paragraphs.  Pseudoinstructions are instructions that assemblers know how to translate to other actual hardware-implemented instructions.  For example, there is an unconditional jump pseudoinstruction `j offset_address`, which RISC-V assemblers translate to `jal zero, offset_address`.  For a full list of officially supported pseudoinstructions, search for pseudoinstruction [here in v2.2 of the RISC-V spec.](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf)
+
+{% highlight nasm %}
+_start:
+  ...other stuff...
+  jal zero, main
+  .cfi_endproc
+  .end
+{% endhighlight %}
 
 Our very last line is an assembler directive, `.end`, which simply marks the end of the assembly file.
 
@@ -408,10 +413,10 @@ As a reminder, here was our program:
 {% highlight c %}
 $ cat add.c
 int main() {
-    int x = 9;
-    int v = 1;
+    int a = 4;
+    int b = 12;
     while (1) {
-        int q = x + v;
+        int c = a + b;
     }
     return 0;
 }
@@ -429,6 +434,70 @@ You'll notice we have specified _a lot_ more flags than we did last time, so let
 
 `-Wl` is a comma-separated list of flags to pass on to the linker (`ld`).  `--gc-sections` stands for "garbage collect sections", and tells `ld` to remove unused sections post-link. `-nostartfiles`, `-nostdlib`, and `-nodefaultlibs` respectively tell the linker not to link in any standard system startup files (such as the default `crt0`), any standard system stdlib implementation, or any standard system default linkable libraries.  Once again, we are not running in an OS, and are not providing any of these things ourselves, so let's make sure the linker knows to exclude them.
 
-`-T` allows you to specify the path to and name of your linker script, which in our case is called `riscv64-virt.ld`. Finally, we specify the files we wish to compile, assemble, and link: `crt0.s` and `add.c`.  As with before, this all results in a fully-fledged and ready to run executable named `a.out`.
+`-T` allows you to specify the path to and name of your linker script, which in our case is called `riscv64-virt.ld`. Finally, we specify the files we wish to compile, assemble, and link: `crt0.s` and `add.c`.  As with before, this all results in a fully-fledged and ready-to-run executable called `a.out`.
 
+We'll now start our shiny new executable in `qemu`:
 
+{% highlight bash %}
+# -S freezes execution of our executable (-kernel) until we explicitly tell it to start with a 'continue' or 'c' from our gdb client
+$ qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -S -kernel a.out
+{% endhighlight %}
+
+And then start `gdb`, making sure to load the debug symbols for `a.out` by specifying it as our last argument:
+
+{% highlight bash %}
+$ riscv64-unknown-elf-gdb --tui a.out
+
+GNU gdb (GDB) 8.2.90.20190228-git
+Copyright (C) 2019 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "--host=x86_64-apple-darwin17.7.0 --target=riscv64-unknown-elf".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<http://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from a.out...
+(gdb)
+{% endhighlight %}
+
+Next we'll connect our running `gdb` client to the `gdb` server we started as part of our `qemu` command:
+
+{% highlight bash %}
+(gdb) target remote :1234                                                                             │
+Remote debugging using :1234
+{% endhighlight %}
+
+Set a breakpoint in `main`:
+
+{% highlight bash %}
+(gdb) b main
+Breakpoint 1 at 0x8000001e: file add.c, line 2.
+{% endhighlight %}
+
+And start execution of the program:
+
+{% highlight bash %}
+(gdb) c
+Continuing.
+
+Breakpoint 1, main () at add.c:2
+{% endhighlight %}
+
+You'll notice from the above output that we have successfully hit a breakpoint on line 2!  Our text interface also shows this via the `B+>` gutter annotation, and we finally have a proper line `L` and `PC:` value - `L2` and `PC: 0x8000001e`.  If you've been following along, yours might look something like this:
+
+![add.c with breakpoint triggered on line 2](/assets/img/working_gdb.png)
+
+From here we can use `gdb` as normal - `s` to step to the next instruction, `info all-registers` to inspect the values inside our registers as our program executes, so on and so forth.  Experiment to your hearts content...we certainly worked hard enough to get here!
+
+### What's next
+
+We accomplished, and hopefully learned, a lot today!  I've never had a formal plan for this series, instead simply following whatever is most interesting to me at each moment, so I'm not sure what exactly comes next in this series.  I particularly enjoyed the deep dive we took into the `jal` instruction, so perhaps in our next post we'll build upon the foundation we created here but instead replace `add.c` with some pure RISC-V assembly program.  If you have something in particular you'd like to see let me know by opening an issue at [https://github.com/twilco/twilco.github.io/issues](https://github.com/twilco/twilco.github.io/issues).  After the next post in the series is complete I'll link to it below.
+
+Thanks for reading, and hope to see you in the next post!
