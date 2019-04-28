@@ -5,11 +5,11 @@ date:   2019-04-27 12:42:53
 categories: riscv toolchain
 ---
 
-Welcome to the second post of the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, setup the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor with the help of [SiFive's freedom-e-sdk](https://github.com/sifive/freedom-e-sdk).
+Welcome to the second post of the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, set up the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor with the help of [SiFive's freedom-e-sdk](https://github.com/sifive/freedom-e-sdk).
 
-The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C program on an emulated or physical RISC-V processor.  We didn't have to worry about setting up any linker scripts or writing a runtime, which (for C and other languages with minimal runtimes) initializes our stack, calls our `main` function, and more.  This is great if you're looking to quickly become productive, but these details are exactly the sort of thing we want to learn about!
+The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C program on an emulated or physical RISC-V processor.  We didn't have to worry about setting up any linker scripts or writing a runtime that sets up our stack, calls into `main`, and more.  This is great if you're looking to quickly become productive, but these details are exactly the sort of thing we want to learn about!
 
-In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program setup and running, and finally invoke GDB and step through our program.
+In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program set up and running, and finally invoke GDB and step through our program.
 
 ### The naive approach 
 
@@ -77,7 +77,7 @@ Reading symbols from a.out...                                                   
 
 While we could now try to tell GDB to `run` or `start` the `a.out` executable it's currently pointed at, this won't work, and for good reason.  We used `riscv64-unknown-elf-gcc` to compile our program, so unless our host machine is running a `riscv64` CPU it won't know what to do with a program compiled for that target.
 
-All is lost, right?  Fortunately, no!  This is one major reason for GDB's client-server model.  We can take our `riscv64-unknown-elf-gdb` executable, which knows how to debug `riscv64` targets, and point it at some remote target (a GDB server) instead of running the program on our host machine.  This will look something like this:
+All is lost, right?  Fortunately, no!  This is one major reason for GDB's client-server model.  We can take our `riscv64-unknown-elf-gdb` executable which knows how to debug `riscv64` targets and point it at some remote target (a GDB server) instead of running the program on our host machine.  This will look something like this:
 
 {% highlight bash %}
 (gdb) target remote :1234                                                                             │
@@ -124,7 +124,7 @@ To answer these questions, let's re-run our GCC command with the `-v` flag to ge
 $ riscv64-unknown-elf-gcc add.c -O0 -g -v
 {% endhighlight %}
 
-There's quite a lot we get back, so we won't look through it all.  The first important thing of note is that even though GCC stands for "GNU C Compiler", `gcc` _also_ by default links our code in addition to compiling and assembling it (`-c` tells GCC only to compile and assemble).  Why is this relevant?  Well, take a look at this snippet pulled from our verbose `gcc` command:
+There's quite a lot we get back so we won't look through it all.  The first important thing of note is that even though GCC stands for "GNU C Compiler", `gcc` _also_ by default links our code in addition to compiling and assembling it (`-c` tells GCC only to compile and assemble).  Why is this relevant?  Well, take a look at this snippet pulled from our verbose `gcc` command:
 
 {% highlight bash %}
 # The actual `gcc -v` command outputs full paths, but those are quite
@@ -148,7 +148,7 @@ Knowing this, we see that GCC is linking multiple different `crt` object files w
 
 > This object [crt0] is expected to contain the `_start` symbol, which takes care of bootstrapping the initial execution of the program. 
 
-This bootstrapping of initial execution includes important tasks such as setting up the stack frame, passing along command line arguments, and calling into `main`.  Yes, we have _finally_ answered the question posed in the beginning of this section - it is `_start` who calls into our `main` function!
+This bootstrapping of initial execution includes important tasks such as setting up the stack frame, passing along command line arguments, and calling into `main`.  Yes, we have _finally_ answered the question posed at the beginning of this section - it is `_start` who calls into our `main` function!
 
 ### Finding our stack
 
@@ -160,9 +160,9 @@ We've solved one mystery, but you might be wondering how this gets us any closer
 * Target ISA, `rv64imafdc`
 * Target ABI, `lp64d`
 
-This may work fine in a general case, but is undoubtedly not going to work for every RISC-V processor.  As mentioned previously, one of `crt0`s jobs is to setup the stack, but how can it do that if it doesn't know _where_ the stack should be for the CPU (`-machine`) we're running against?  Answer: it can't, at least not without us giving it a bit of assistance.
+This may work fine in a general case, but is undoubtedly not going to work for every RISC-V processor.  As mentioned previously, one of `crt0`s jobs is to set up the stack, but how can it do that if it doesn't know _where_ the stack should be for the CPU (`-machine`) we're running against?  Answer: it can't, at least not without us giving it a bit of assistance.
 
-Circling back to the `qemu` command we ran in the beginning of this post (`qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out`), recall we were using the `virt` machine.  Fortunately for us, `qemu` exposes a simple way to dump information about a machine in `dtb` (device tree blob) format.
+Circling back to the `qemu` command we ran at the beginning of this post (`qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out`), recall we were using the `virt` machine.  Fortunately for us, `qemu` exposes a simple way to dump information about a machine in `dtb` (device tree blob) format.
 
 {% highlight bash %}
 # Go to the ~/usys/riscv folder we created before and create a new dir 
@@ -187,7 +187,7 @@ $ brew install dtc
 $ dtc -I dtb -O dts -o riscv64-virt.dts riscv64-virt.dtb
 {% endhighlight %}
 
-This gives us a file called `riscv64-virt.dts`, which has lots of interesting information about `virt` such as the number of available CPU cores, the memory location of various peripherals such as the UART, and the memory location of the on-board memory (RAM).  We want our stack to live inside this memory, so let's `grep` for it:
+This gives us a file called `riscv64-virt.dts`, which has lots of interesting information about `virt` such as the number of available CPU cores, the memory location of various peripherals such as the UART, and the memory location of the onboard memory (RAM).  We want our stack to live inside this memory, so let's `grep` for it:
 
 {% highlight bash %}
 $ cat riscv64-virt.dst | grep 'memory' -A 3
@@ -210,13 +210,13 @@ $ head -n8 riscv64-virt.dts
         model = "riscv-virtio,qemu";
 {% endhighlight %}
 
-And there we have it - it takes two 32-bit values (cells) to specify an address, and two 32-bit values to specify length.  This means, given `reg = <0x00 0x80000000 0x00 0x8000000>;`, our memory begins at `0x00 + 0x80000000` (`0x80000000`) and extends `0x00` + `0x8000000` (`0x8000000`) bytes, meaning it ends at `0x88000000`.  In more human-friendly terms, we can use a hexadecimal calculator to determine that our length of`0x8000000` bytes is actually 128 megabytes.
+And there we have it - it takes two 32-bit values (cells) to specify an address, and two 32-bit values to specify length.  This means, given `reg = <0x00 0x80000000 0x00 0x8000000>;`, our memory begins at `0x00 + 0x80000000` (`0x80000000`) and extends `0x00` + `0x8000000` (`0x8000000`) bytes, meaning it ends at `0x88000000`.  In more human-friendly terms, we can use a hexadecimal calculator to determine that our length of `0x8000000` bytes is actually 128 megabytes.
 
 ### Link it up
 
 Using `qemu` and `dtc`, we've successfully discovered where the RAM lives inside our `virt` machine (`0x80000000`) and how long it extends (128 megabytes).  We also know that `gcc` is linking a default `crt0` that isn't setting up our stack the way we need it to.  But what exactly do we do with this information, and how does it get us any closer to getting a running, debuggable program?
 
-Well, since the default `crt0` isn't doing what we need it to, we have one obvious choice: writing our own, and then linking it with the object file created from compiling our  simple addition program.  Our `crt0` will need to know where the top of the stack starts in order to properly initialize it.  We could hardcode this value to `0x80000000` directly in our `crt0`, but that isn't a very maintainable solution.  What happens when we want to use a different `qemu`lated CPU, such as the `sifive_e`, that has different memory properties?  
+Well, since the default `crt0` isn't doing what we need it to, we have one obvious choice: writing our own, and then linking it with the object file created from compiling our simple addition program.  Our `crt0` will need to know where the top of the stack starts in order to properly initialize it.  We could hardcode this value to `0x80000000` directly in our `crt0`, but that isn't a very maintainable solution.  What happens when we want to use a different `qemu`lated CPU, such as the `sifive_e`, that has different memory properties?  
 
 Fortunately for us, we are far from the first to ask this question, and a good solution exists.  GNU's linking program, `ld`, [provides a way for us to define a symbol](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html) which would be accessible from our `crt0`.  We can use this, among other functions provided by `ld`, to create a `__stack_top` symbol definition that is reasonably flexible across multiple different CPUs.
 
@@ -291,7 +291,7 @@ SECTIONS
 
 As you can see, we use the [PROVIDE command](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html#PROVIDE) to define a symbol called `__stack_top`.  `__stack_top` will be accessible from any program linked with this script (assuming the program itself does not also define something named `__stack_top`).  We set the value of `__stack_top` top to be `ORIGIN(RAM)`, which we know is `0x80000000`, plus `LENGTH(RAM)`, which we know is 128 megabytes (`8000000` bytes in hexadecimal).  This means our `__stack_top` is set to `0x88000000`.
 
-For brevity's sake I won't include the entire linker file here, but if you want the final product you can view / download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
+For brevity's sake I won't include the entire linker file here, but if you want the final product you can view/download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
 
 ### Stop! It's <s>hammertime</s> runtime!
 
@@ -322,7 +322,7 @@ With this knowledge in mind, let's run through this file line-by-line.  We'll be
 .section .init, "ax"
 {% endhighlight %}
 
-Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), this line tells the assembler that we want the following code to go into a section named `.init` that is `a`llocatable and e`x`ecutable.  The `.init` section is [another commonly followed convention](http://l4u-00.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/node3.html) for running your code within the confines of an operating system.  We're running on baremetal with no OS, so this may not be totally necessary in our case, but it's good practice regardless.
+Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), this line tells the assembler that we want the following code to go into a section named `.init` that is `a`llocatable and e`x`ecutable.  The `.init` section is [another commonly followed convention](http://l4u-00.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/node3.html) for running your code within the confines of an operating system.  We're running on bare metal with no OS, so this may not be totally necessary in our case, but it's good practice regardless.
 
 {% highlight nasm %}
  .global _start
@@ -467,7 +467,7 @@ Reading symbols from a.out...
 (gdb)
 {% endhighlight %}
 
-Next we'll connect our running `gdb` client to the `gdb` server we started as part of our `qemu` command:
+Next, we'll connect our running `gdb` client to the `gdb` server we started as part of our `qemu` command:
 
 {% highlight bash %}
 (gdb) target remote :1234                                                                             │
