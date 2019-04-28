@@ -5,11 +5,20 @@ date:   2019-04-27 12:42:53
 categories: riscv toolchain
 ---
 
+{: .no_toc}
+#### Table of contents
+1. TOC
+{:toc}
+
+### Introduction
+
 Welcome to the second post of the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, set up the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor with the help of [SiFive's freedom-e-sdk](https://github.com/sifive/freedom-e-sdk).
 
 The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C program on an emulated or physical RISC-V processor.  We didn't have to worry about setting up any linker scripts or writing a runtime that sets up our stack, calls into `main`, and more.  This is great if you're looking to quickly become productive, but these details are exactly the sort of thing we want to learn about!
 
 In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program set up and running, and finally invoke GDB and step through our program.
+
+If you missed the previous post in this series and don't have `riscv-qemu` and the RISC-V toolchain installed and were hoping to follow along, jump to the ["QEMU and RISC-V toolchain setup"](/riscv/toolchain/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) section (or in RISC-V assembly, `jal x0, qemu_and_toolchain_setup`) and complete that before moving on.
 
 ### The naive approach 
 
@@ -293,7 +302,7 @@ As you can see, we use the [PROVIDE command](https://access.redhat.com/documenta
 
 For brevity's sake I won't include the entire linker file here, but if you want the final product you can view/download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
 
-### Stop! It's <s>hammertime</s> runtime!
+### Stop!  <s>Hammertime</s> Runtime!
 
 We finally have all we need to create a custom C runtime that works for us, so let's get started.  What we need is actually very simple - here is `crt0.s` in its entirety:
 
@@ -501,3 +510,7 @@ From here we can use `gdb` as normal - `s` to step to the next instruction, `inf
 We accomplished, and hopefully learned, a lot today!  I've never had a formal plan for this series, instead simply following whatever is most interesting to me at each moment, so I'm not sure what exactly comes next in this series.  I particularly enjoyed the deep dive we took into the `jal` instruction, so perhaps in our next post we'll build upon the foundation we created here but instead replace `add.c` with some pure RISC-V assembly program.  If you have something in particular you'd like to see let me know by opening an issue at [https://github.com/twilco/twilco.github.io/issues](https://github.com/twilco/twilco.github.io/issues).  After the next post in the series is complete I'll link to it below.
 
 Thanks for reading, and hope to see you in the next post!
+
+### Extra credit
+
+If you enjoyed this post and want event more, [Matt Godbolt gave a presentation titled "The Bits Between the Bits: How We Get to main()"](https://www.youtube.com/watch?v=dOfucXtyEsU) at CppCon2018 that approaches this subject from a few different angles than we took here in this post.  If you've worked through the entirety of this post you will definitely recognize some of the things he covers.  It's a good talk, so check it out!

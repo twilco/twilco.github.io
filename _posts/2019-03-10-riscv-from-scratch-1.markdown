@@ -5,6 +5,13 @@ date:   2019-03-10 12:42:53
 categories: riscv toolchain
 ---
 
+{: .no_toc}
+#### Table of contents
+1. TOC
+{:toc}
+
+### Introduction
+
 Welcome to part one of *RISC-V from scratch!*  Throughout this series, we will utilize RISC-V and its ecosystem to explore various low-level tools and concepts, such as linkers, runtimes and startup routines, assembly, and lots more.  I am a web developer by trade, and as such I'm not exposed to these things on a daily basis.  However, I think they are very interesting - hence this series!  Join me on a very much unstructured journey into the depths of all things low-level.
 
 In this first post, we'll talk a little bit about what RISC-V is, why it's important, and finish up by setting up a RISC-V toolchain and building and running a simple RISC-V program.
