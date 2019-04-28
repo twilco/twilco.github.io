@@ -303,6 +303,7 @@ As you can see, we use the [PROVIDE command](https://access.redhat.com/documenta
 For brevity's sake I won't include the entire linker file here, but if you want the final product you can view/download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
 
 ### Stop!  <s>Hammertime</s> Runtime!
+<div style="margin-top: -30px; margin-bottom: 7px;"><sub><sup><sub><sup><a href="https://www.youtube.com/watch?v=otCpCn0l4Wo">https://www.youtube.com/watch?v=otCpCn0l4Wo</a></sup></sub></sup></sub></div>
 
 We finally have all we need to create a custom C runtime that works for us, so let's get started.  What we need is actually very simple - here is `crt0.s` in its entirety:
 
