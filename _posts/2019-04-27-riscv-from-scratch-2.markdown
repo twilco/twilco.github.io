@@ -153,7 +153,7 @@ $RV_GCC_BIN_PATH/../libexec/gcc/riscv64-unknown-elf/8.2.0/collect2 \
 COLLECT_GCC_OPTIONS='-O0' '-g' '-v' '-march=rv64imafdc' '-mabi=lp64d'
 {% endhighlight %}
 
-I realize that even in a shortened form this is still a lot to look at, so let me explain what's going on here.  On our first line, `gcc` is executing a program called `collect2`, passing along various arguments (`crt0.o`, `crtbegin.o`, `crtend.o`, and more), and various flags (`-lgcc`, `--start-group`, etc).  We can read about [what collect2 is here](https://gcc.gnu.org/onlinedocs/gccint/Collect2.html) - in short, `collect2` arranges various initialization functions at start time by making one or more linking passes.
+I realize that even in a shortened form this is still a lot to look at, so let me explain what's going on here.  On our first line, `gcc` is executing a program called `collect2`, passing along arguments such as `crt0.o`, `crtbegin.o`, and `crtend.o`, and flags like `-lgcc` and `--start-group`.  We can read about [what collect2 is here](https://gcc.gnu.org/onlinedocs/gccint/Collect2.html) - in short, `collect2` arranges various initialization functions at start time by making one or more linking passes.
 
 Knowing this, we see that GCC is linking multiple different `crt` object files with the code we wrote.  As you might guess, `crt` stands for "C runtime".  You [can read in detail what each crt is for here](https://stackoverflow.com/a/27786892/2421349), but in our case we care the most about `crt0`, which has one very important job:
 
@@ -188,7 +188,7 @@ $ cd machines
 $ qemu-system-riscv64 -machine virt -machine dumpdtb=riscv64-virt.dtb
 {% endhighlight %}
 
-Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (device tree compiler) that can convert it into something more human-readable for us.
+Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (device tree compiler) that can convert it into something more human-readable.
 
 {% highlight bash %}
 # I'm running MacOS, so I use Homebrew to install this. If you're
@@ -225,13 +225,13 @@ $ head -n8 riscv64-virt.dts
         model = "riscv-virtio,qemu";
 {% endhighlight %}
 
-And there we have it - it takes two 32-bit values (cells) to specify an address, and two 32-bit values to specify length.  This means, given `reg = <0x00 0x80000000 0x00 0x8000000>;`, our memory begins at `0x00 + 0x80000000` (`0x80000000`) and extends `0x00` + `0x8000000` (`0x8000000`) bytes, meaning it ends at `0x88000000`.  In more human-friendly terms, we can use a hexadecimal calculator to determine that our length of `0x8000000` bytes is actually 128 megabytes.
+And there we have it - it takes two 32-bit values (cells) to specify an address, and two 32-bit values to specify length.  This means, given `reg = <0x00 0x80000000 0x00 0x8000000>;`, our memory begins at `0x00 + 0x80000000` (`0x80000000`) and extends `0x00` + `0x8000000` (`0x8000000`) bytes, meaning it ends at `0x88000000`.  In more human-friendly terms, we can use a hexadecimal calculator to determine that our length of `0x8000000` bytes is 128 megabytes.
 
 ### Link it up
 
-Using `qemu` and `dtc`, we've successfully discovered where the RAM lives inside our `virt` machine (`0x80000000`) and how long it extends (128 megabytes).  We also know that `gcc` is linking a default `crt0` that isn't setting up our stack the way we need it to.  But what exactly do we do with this information, and how does it get us any closer to getting a running, debuggable program?
+Using `qemu` and `dtc`, we've successfully discovered where the RAM lives and how long it extends in our `virt` virtual machine.  We also know that `gcc` is linking a default `crt0` that isn't setting up our stack the way we need it to.  But what exactly do we do with this information, and how does it get us any closer to getting a running, debuggable program?
 
-Well, since the default `crt0` isn't doing what we need it to, we have one obvious choice: writing our own, and then linking it with the object file created from compiling our simple addition program.  Our `crt0` will need to know where the top of the stack starts in order to properly initialize it.  We could hardcode this value to `0x80000000` directly in our `crt0`, but that isn't a very maintainable solution.  What happens when we want to use a different `qemu`lated CPU, such as the `sifive_e`, that has different memory properties?  
+Well, since the default `crt0` isn't doing what we need it to, we have one obvious choice: writing our own, and then linking it with the object file created from compiling our simple addition program.  Our `crt0` will need to know where the top of the stack starts in order to properly initialize it.  We could hardcode this value to `0x80000000` directly in our `crt0`, but that isn't a very maintainable solution.  What happens when we want to use a different `qemu`-lated CPU, such as the `sifive_e`, that has different memory properties?  
 
 Fortunately for us, we are far from the first to ask this question, and a good solution exists.  GNU's linking program, `ld`, [provides a way for us to define a symbol](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html) which would be accessible from our `crt0`.  We can use this, among other functions provided by `ld`, to create a `__stack_top` symbol definition that is reasonably flexible across multiple different CPUs.
 
@@ -285,7 +285,7 @@ MEMORY
 ENTRY(_start)
 {% endhighlight %}
 
-With this, we've created a block of memory called `RAM` that is readable (`r`), writable (`w`), and capable of containing executable code (`x`).  It starts at `0x80000000`, and extends for 128 megabytes, meaning it ends at `0x88000000`.
+With this, we've created a block of memory called `RAM` that is readable (`r`), writable (`w`), and capable of containing executable code (`x`).
 
 Great, so we've defined a memory layout to match the specifications of our `virt` RISC-V machine.  But this RAM memory block isn't much use unless we actually _do_ something with it.  We want our stack to live in RAM, so let's use this RAM definition to create `__stack_top`.
 
@@ -330,7 +330,7 @@ _start:
     .end
 {% endhighlight %}
 
-The first thing you may notice is that there are a lot of lines that begin with a `.`.  This is an assembly file, meaning the program that will be looking at this is the assembler, which in the GNU world is the `as` executable.  The lines that begin with `.`s are called [assembler directives](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), which provide information to the assembler rather than acting as executable code like our actual RISC-V assembly instructions, such as `jal` and `add`.
+The first thing you may notice is that there are a lot of lines that begin with a `.`.  This is an assembly file, meaning the program that will be looking at this is the assembler, which in the GNU world is the `as` executable.  The lines that begin with `.`s are called [assembler directives](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), which provide information to the assembler rather than acting as executable code like our RISC-V assembly instructions, such as `jal` and `add`.
 
 With this knowledge in mind, let's run through this file line-by-line.  We'll be working with various RISC-V standard registers, so [check out this table](https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md#general-registers) for a good overview of each of them and their purpose.
 
@@ -345,7 +345,7 @@ Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/
 _start:
 {% endhighlight %}
 
-`.global` is important because it makes the symbol following it available to `ld`.  Without this, linking would fail because we told it via the `ENTRY(_start)` command in our linker script that it should look for the `_start` symbol when establishing the entry point to our executable.  The line starting with `_start:` tells the assembler we are beginning the definition of a symbol called `_start`.
+`.global` is important because it makes the symbol following it available to `ld`.  Without this, linking would fail because we told it via the `ENTRY(_start)` command in our linker script that it should look for the `_start` symbol when establishing the entry point to our executable.  `_start:` tells the assembler we are beginning the definition of a symbol called `_start`.
 
 {% highlight nasm %}
 _start:
@@ -355,7 +355,7 @@ _start:
   .cfi_endproc
 {% endhighlight %}
 
-These `.cfi` directives [inform tools, such as the assembler or exception unwinder, about the structure of the frame and how to unwind it.](https://stackoverflow.com/a/33732119/2421349)  `.cfi_startproc` and `.cfi_endproc` signal the start and end of a function, and `.cfi_undefined ra` [tells the assembler that register `ra` should not be restored](https://sourceware.org/binutils/docs/as/CFI-directives.html) to whatever value it contained before `_start` ran.
+These `.cfi` directives [inform tools](https://stackoverflow.com/a/33732119/2421349), such as the assembler or exception unwinder, about the structure of the frame and how to unwind it.  `.cfi_startproc` and `.cfi_endproc` signal the start and end of a function, and `.cfi_undefined ra` [tells the assembler that register `ra` should not be restored](https://sourceware.org/binutils/docs/as/CFI-directives.html) to whatever value it contained before `_start` ran.
 
 {% highlight nasm %}
 .option push
@@ -364,7 +364,7 @@ la gp, __global_pointer$
 .option pop
 {% endhighlight %}
 
-These `.option` directives modify assembler behavior inline with assembly code, which is useful when particular instruction sequences must be assembled with a specific set of options (credit for this information [here](https://embarc.org/man-pages/as/RISC_002dV_002dDirectives.html)).  That link describes in good detail why this is important for the code segment above, so I'll quote it directly:
+These `.option` directives modify assembler behavior inline with assembly code, which is useful when particular instruction sequences must be assembled with a specific set of options.  [This link](https://embarc.org/man-pages/as/RISC_002dV_002dDirectives.html) describes in good detail why this is important for the code segment above, so I'll quote it directly:
 
 > ...since we relax addressing sequences to shorter GP-relative sequences when possible, the initial load of GP must not be relaxed and should be emitted as something like:
 
@@ -400,15 +400,17 @@ _start:
   .end
 {% endhighlight %}
 
-Here we finally make use the `__stack_top` symbol we worked so tirelessly to create.  `la`, or the "load address" [pseudoinstruction](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html), loads the value of `__stack_top` into the `sp` (stack pointer) register, setting it up to be used for the remainder of our program.
+Here we finally make use the `__stack_top` symbol we worked so tirelessly to create.  `la`, or the "load address" [pseudoinstruction](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html) (which will be further explained below), loads the value of `__stack_top` into the `sp` (stack pointer) register, setting it up to be used for the remainder of our program.
 
 Next, `add s0, sp, zero` adds together the value of the `sp` register with the value of the `zero` register (which is actually the `x0` register, hardwired to 0), and finally places it into the `s0` register.  `s0` is a [special register](https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md#general-registers) in a few ways.  First, it is what is known as a "saved register" meaning it is preserved across function calls.  Second, `s0` sometimes acts as the frame pointer, which enables each function invocation to maintain it's own little space on the stack for storing parameters passed into that function.  How function calls work with the stack and frame pointers is a very interesting subject and could easily be a full-length post on it's own, but for now just know that initializing our frame pointer `s0` is an important task for our runtime.
 
 The next instruction we see is `jal zero, main`.  `jal` stands for "`j`ump `a`nd `l`ink", and expects operands in the form of `jal rd (destination register), offset_address`.  Functionally, `jal` writes the value of the next instruction (the `pc` register plus four) to the `rd`, and then sets the `pc` register to the current value of `pc` plus the [sign-extended](https://en.wikipedia.org/wiki/Sign_extension) offset address, effectively "calling" that address.
 
-As mentioned in the previous paragraph, `x0` is hardwired to the literal value of `0`, and writes to it have no effect.  With this in mind, you may think it's odd that we're using the `zero` register, which RISC-V assemblers interpret as the `x0` register, as our destination register, since this effectively creates an unconditional and side-effect free jump to `offset_address`.  Why do it this way, you may wonder...don't other ISAs have an explicit unconditional jump instruction?  This odd `jal zero, offset_address` pattern is actually a clever optimization enabled by the dedication of one whole register to a hard-wired zero.  Each supported instruction means a larger, and therefore more expensive, processor, so the simpler the ISA the better.  Rather than polluting the instruction space with both `jal` and `unconditional jump` instructions, the RISC-V ISA only calls for `jal`, but through `jal zero, main` supports unconditional jumps.  
+As mentioned above, `x0` is hardwired to the literal value of `0`, and writes to it have no effect.  With this in mind, you may think it's odd that we're using the `zero` register, which RISC-V assemblers interpret as the `x0` register, as our destination register, since this effectively creates an unconditional and side-effect free jump to `offset_address`.  Why do it this way, you may wonder...don't other ISAs have an explicit unconditional jump instruction?
 
-There are many, many similar optimizations in RISC-V, most taking the form of what are known as [pseudoinstructions](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html), which were briefly mentioned up a few paragraphs.  Pseudoinstructions are instructions that assemblers know how to translate to other actual hardware-implemented instructions.  For example, there is an unconditional jump pseudoinstruction `j offset_address`, which RISC-V assemblers translate to `jal zero, offset_address`.  For a full list of officially supported pseudoinstructions, search for pseudoinstruction [here in v2.2 of the RISC-V spec.](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf)
+This odd `jal zero, offset_address` pattern is actually a clever optimization enabled by the dedication of one whole register to a hard-wired zero.  Each supported instruction means a larger, and therefore more expensive, processor, so the simpler the ISA the better.  Rather than polluting the instruction space with both `jal` and `unconditional jump` instructions, the RISC-V ISA only calls for `jal`, but through `jal zero, main` supports unconditional jumps. 
+
+There are many, many similar optimizations in RISC-V, most taking the form of what are known as [pseudoinstructions](https://cseweb.ucsd.edu/classes/fa12/cse141/project/pseudo.html).  Pseudoinstructions are instructions that assemblers know how to translate to other actual hardware-implemented instructions.  For example, there is an unconditional jump pseudoinstruction `j offset_address`, which RISC-V assemblers translate to `jal zero, offset_address`.  For a full list of officially supported pseudoinstructions, search for pseudoinstruction [here in v2.2 of the RISC-V spec.](https://content.riscv.org/wp-content/uploads/2017/05/riscv-spec-v2.2.pdf)
 
 {% highlight nasm %}
 _start:
@@ -446,7 +448,7 @@ riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections -nostartfiles -n
 
 You'll notice we have specified _a lot_ more flags than we did last time, so let's walk through all the ones we didn't cover in the first section. 
 
-`-ffreestanding` [tells the compiler that the standard library may not exist](https://stackoverflow.com/questions/17692428/what-is-ffreestanding-option-in-gcc#17692510), and therefore not make assumptions that it will be there.  This option isn't necessary when running your application in a hosted environment (within an OS), but we aren't doing that, so it's important to tell the compiler that information.
+`-ffreestanding` [tells the compiler that the standard library may not exist](https://stackoverflow.com/questions/17692428/what-is-ffreestanding-option-in-gcc#17692510), and therefore not to make assumptions that it will be there.  This option isn't necessary when running your application in a hosted environment (within an OS), but we aren't doing that, so it's important to tell the compiler that information.
 
 `-Wl` is a comma-separated list of flags to pass on to the linker (`ld`).  `--gc-sections` stands for "garbage collect sections", and tells `ld` to remove unused sections post-link. `-nostartfiles`, `-nostdlib`, and `-nodefaultlibs` respectively tell the linker not to link in any standard system startup files (such as the default `crt0`), any standard system stdlib implementation, or any standard system default linkable libraries.  We are providing our own `crt0` and linker script, so it's important to pass these flags to inform the compiler we don't want any of these defaults to avoid conflict with our custom setup.
 
@@ -515,7 +517,7 @@ From here we can use `gdb` as normal - `s` to step to the next instruction, `inf
 
 ### What's next
 
-We accomplished, and hopefully learned, a lot today!  I've never had a formal plan for this series, instead simply following whatever is most interesting to me at each moment, so I'm not sure what exactly comes next in this series.  I particularly enjoyed the deep dive we took into the `jal` instruction, so perhaps in our next post we'll build upon the foundation we created here but instead replace `add.c` with some pure RISC-V assembly program.  If you have something in particular you'd like to see let me know by opening an issue at [https://github.com/twilco/twilco.github.io/issues](https://github.com/twilco/twilco.github.io/issues).  After the next post in the series is complete I'll link to it below.
+We accomplished, and hopefully learned, a lot today!  I've never had a formal plan for this series, instead simply following whatever is most interesting to me at each moment, so I'm not sure exactly sure what will come next.  I particularly enjoyed the deep dive we took into the `jal` instruction, so perhaps in our next post we'll build upon the foundation we created here but instead replace `add.c` with some pure RISC-V assembly program.  If you have something in particular you'd like to see or have any questions about what we covered here, let me know by opening an issue at [https://github.com/twilco/twilco.github.io/issues](https://github.com/twilco/twilco.github.io/issues).  After the next post in the series is complete I'll link to it below.
 
 Thanks for reading, and hope to see you in the next post!
 
