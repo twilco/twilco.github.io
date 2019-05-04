@@ -22,7 +22,7 @@ If you missed the previous post in this series and don't have `riscv-qemu` and t
 
 ### The naive approach 
 
-Let's start our journey with a simple C program that adds two numbers together infinitely.
+Let's start our journey with a simple C program that infinitely adds two numbers together.
 
 {% highlight bash %}
 $ cat add.c
@@ -40,24 +40,26 @@ We want to run this program, and the first step on that path is compiling it int
 
 {% highlight bash %}
 # -O0 to disable all optimizations. Without this, GCC might optimize 
-# away our inifinite addition.
-# -g to tell GCC to preserve debug info in our executable, which 
-# by default is named 'a.out'.
+# away our infinite addition since the result 'c' is never used.
+# -g to tell GCC to preserve debug info in our executable.
 $ riscv64-unknown-elf-gcc add.c -O0 -g
 {% endhighlight %}
 
-This produces a file called `a.out`, which we can now run inside `qemu`.
+This produces a file called `a.out`, which is the default name `gcc` gives executables when we don't tell it what we want them to be called.  We can now run this brand new executable inside `qemu`:
 
 {% highlight bash %}
 # -machine tells QEMU which among our list of available machines we want to
 # run our executable against.  Run qemu-system-riscv64 -machine help to list
 # all available machines.
+# -m is the amount of memory to allocate to our virtual machine.
 # -gdb tcp::1234 tells QEMU to also start a GDB server on localhost:1234 where
 # TCP is the means of communication.
 # -kernel tells QEMU what we're looking to run, even if our executable isn't 
 # exactly a "kernel".
 $ qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out
 {% endhighlight %}
+
+We've chosen the `virt` RISC-V machine, which is one `riscv-qemu` [comes with out of the box](https://github.com/riscv/riscv-qemu/wiki#machines).  
 
 Now that our program is running inside QEMU with a GDB server on host `localhost` and port `1234`, let's connect to it with our RISC-V GDB client from a separate terminal:
 
@@ -86,7 +88,7 @@ Reading symbols from a.out...                                                   
 
 While we could now try to tell GDB to `run` or `start` the `a.out` executable it's currently pointed at, this won't work, and for good reason.  We used `riscv64-unknown-elf-gcc` to compile our program, so unless our host machine is running a `riscv64` CPU it won't know what to do with a program compiled for that target.
 
-All is lost, right?  Fortunately, no!  This is one major reason for GDB's client-server model.  We can take our `riscv64-unknown-elf-gdb` executable which knows how to debug `riscv64` targets and point it at some remote target (a GDB server) instead of running the program on our host machine.  This will look something like this:
+All is lost, right?  Of course not!  This situation is one major reason for GDB's client-server model.  We can take our `riscv64-unknown-elf-gdb` executable which knows how to debug `riscv64` targets and point it at some remote target (a GDB server) instead of running the program on our host machine.  As you may recall, we just started `riscv-qemu` and told it to start a GDB server on host `localhost` and port `1234`. Connecting to this server is as easy this:
 
 {% highlight bash %}
 (gdb) target remote :1234                                                                             │
@@ -151,19 +153,19 @@ $RV_GCC_BIN_PATH/../libexec/gcc/riscv64-unknown-elf/8.2.0/collect2 \
 COLLECT_GCC_OPTIONS='-O0' '-g' '-v' '-march=rv64imafdc' '-mabi=lp64d'
 {% endhighlight %}
 
-I realize that even in a shortened form this is still a lot to look at, so let me explain what's going on here.  On our first line, `gcc` is executing a program called `collect2`, passing along various arguments (`../crt0.o`, `../crtbegin.o`, `../crtend.o`, and more), and various flags (`-lgcc`, `--start-group`, etc).  We can read about [what collect2 is here](https://gcc.gnu.org/onlinedocs/gccint/Collect2.html) - in short, `collect2` arranges various initialization functions at start time by making one or more linking passes.
+I realize that even in a shortened form this is still a lot to look at, so let me explain what's going on here.  On our first line, `gcc` is executing a program called `collect2`, passing along various arguments (`crt0.o`, `crtbegin.o`, `crtend.o`, and more), and various flags (`-lgcc`, `--start-group`, etc).  We can read about [what collect2 is here](https://gcc.gnu.org/onlinedocs/gccint/Collect2.html) - in short, `collect2` arranges various initialization functions at start time by making one or more linking passes.
 
 Knowing this, we see that GCC is linking multiple different `crt` object files with the code we wrote.  As you might guess, `crt` stands for "C runtime".  You [can read in detail what each crt is for here](https://stackoverflow.com/a/27786892/2421349), but in our case we care the most about `crt0`, which has one very important job:
 
 > This object [crt0] is expected to contain the `_start` symbol, which takes care of bootstrapping the initial execution of the program. 
 
-This bootstrapping of initial execution includes important tasks such as setting up the stack frame, passing along command line arguments, and calling into `main`.  Yes, we have _finally_ answered the question posed at the beginning of this section - it is `_start` who calls into our `main` function!
+What exactly this bootstrapping of initial execution is depends on the platform in question, but generally it includes important tasks such as setting up the stack frame, passing along command line arguments, and calling into `main`.  Yes, we have _finally_ answered the question posed at the beginning of this section - it is `_start` who calls into our `main` function!
 
 ### Finding our stack
 
 We've solved one mystery, but you might be wondering how this gets us any closer to our original goal of being able to step through our simple C program with `gdb`.  There are a few problems we have left to address, but the first we have has to do with the way `crt0` is setting up our stack.
 
-`gcc` links a default `crt0` based on several factors, namely: 
+As we saw above, `gcc` links a default `crt0` unless told to do otherwise.  This default `crt0` is selected based on several factors, namely: 
 
 * [Target triplet](https://wiki.osdev.org/Target_Triplet), which follows the structure of `machine-vendor-operatingsystem`.  For us, this is `riscv64-unknown-elf`
 * Target ISA, `rv64imafdc`
@@ -186,7 +188,7 @@ $ cd machines
 $ qemu-system-riscv64 -machine virt -machine dumpdtb=riscv64-virt.dtb
 {% endhighlight %}
 
-Data in `dtb` format is difficult to read considering the fact that it's mostly binary, but there is a tool called `dtc` (device tree compiler) that can convert it into something more human-readable for us.
+Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (device tree compiler) that can convert it into something more human-readable for us.
 
 {% highlight bash %}
 # I'm running MacOS, so I use Homebrew to install this. If you're
@@ -206,7 +208,11 @@ $ cat riscv64-virt.dst | grep 'memory' -A 3
         };
 {% endhighlight %}
 
-We see that the `device_type` for this node is "memory", which means we've probably found what we're looking for.  Using the values inside `reg = <...>;`, we can also determine where this memory bank starts and how long it is.  Referencing [the devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf), we see that the syntax for `reg` is an arbitrary number of `(base_address, length)` pairs.  However, there are four values inside `reg` - shouldn't there only be two necessary to define our singular memory bank?  Again referencing the [devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf) (search for "Property name: reg"), we learn that the number of `<u32>` cells required to specify the address and length is determined by the `#address-cells` and `#size-cells` properties in the parent of node (or in the node itself).  These values aren't specified in our `memory` node, and the parent of the `memory` node is simply the root portion of the file, so let's look there for these values:
+We see that the `device_type` for this node is "memory", which means we've probably found what we're looking for.  Using the values inside `reg = <...>;`, we can also determine where this memory bank starts and how long it is.
+
+Referencing [the devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf), we see that the syntax for `reg` is an arbitrary number of `(base_address, length)` pairs.  However, there are four values inside `reg` - shouldn't there only be two necessary to define our singular memory bank?
+
+Again referencing the [devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf) (search for "Property name: reg"), we learn that the number of `<u32>` cells required to specify the address and length is determined by the `#address-cells` and `#size-cells` properties in the parent of node (or in the node itself).  These values aren't specified in our `memory` node, and the parent of the `memory` node is simply the root portion of the file, so let's look there for these values:
 
 {% highlight bash %}
 $ head -n8 riscv64-virt.dts
@@ -231,7 +237,7 @@ Fortunately for us, we are far from the first to ask this question, and a good s
 
 Rather than writing our own linker file from scratch, it is going to make more sense to take the default linker script that `ld` uses and modify it slightly to expose any additional symbols we want. What is a linker script, you might be wondering?  [This snippet summarizes it well:](http://www.scoberlin.de/content/media/http/informatik/gcc_docs/ld_3.html)
 
-> The main purpose of the linker script is to describe how the sections in the input files should be mapped into the output file, and to control the memory layout of the output file. Most linker scripts do nothing more than this. However, when necessary, the linker script can also direct the linker to perform many other operations...
+> The main purpose of the linker script is to describe how the sections in the input files should be mapped into the output file, and to control the memory layout of the output file.
 
 Knowing this, let's copy the default linker script `riscv64-unknown-elf-ld` uses into a new file:
 
@@ -243,7 +249,7 @@ mkdir ld && cd ld
 riscv64-unknown-elf-ld --verbose > riscv64-virt.ld
 {% endhighlight %}
 
-There's _a lot_ of interesting information in this file, much more than we can review in this post (maybe a good idea for a future post?).  The `--verbose` output of the command we just ran includes information about the version number of `ld`, supported architectures, and more.  This is all good to know, but not valid linker script syntax, so let's remove it.  Using the text editor of your choice, edit `riscv64-virt.ld` and remove everything above and including the line of equals signs. 
+There's _a lot_ of interesting information in this file, much more than we can review in this post.  The `--verbose` output of the command we just ran includes information about the version number of `ld`, supported architectures, and more.  This is all good to know, but not valid linker script syntax, so let's remove it.  Using the text editor of your choice, edit `riscv64-virt.ld` and remove everything above and including the line of equals signs. 
 
 {% highlight bash %}
 vim riscv64-virt.ld
@@ -269,13 +275,13 @@ With that out of the way, the first thing we'll want to do is make use of the [M
 
 {% highlight bash %}
 OUTPUT_ARCH(riscv)
-/* Our addition. */
+/* >>> Our addition. <<< */
 MEMORY
 {
    /* qemu-system-risc64 virt machine */
    RAM (rwx)  : ORIGIN = 0x80000000, LENGTH = 128M 
 }
-/* End of our addition. */
+/* >>> End of our addition. <<< */
 ENTRY(_start)
 {% endhighlight %}
 
@@ -291,19 +297,19 @@ SECTIONS
   /* Read-only sections, merged into text segment: */
   PROVIDE (__executable_start = SEGMENT_START("text-segment", 0x10000));
   . = SEGMENT_START("text-segment", 0x10000) + SIZEOF_HEADERS;
-  /* Our addition. */
+  /* >>> Our addition. <<< */
   PROVIDE(__stack_top = ORIGIN(RAM) + LENGTH(RAM));
-  /* End of our addition. */
+  /* >>> End of our addition. <<< */
   .interp         : { *(.interp) }
   .note.gnu.build-id  : { *(.note.gnu.build-id) }
 {% endhighlight %}
 
-As you can see, we use the [PROVIDE command](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html#PROVIDE) to define a symbol called `__stack_top`.  `__stack_top` will be accessible from any program linked with this script (assuming the program itself does not also define something named `__stack_top`).  We set the value of `__stack_top` top to be `ORIGIN(RAM)`, which we know is `0x80000000`, plus `LENGTH(RAM)`, which we know is 128 megabytes (`8000000` bytes in hexadecimal).  This means our `__stack_top` is set to `0x88000000`.
+As you can see, we use the [PROVIDE command](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html#PROVIDE) to define a symbol called `__stack_top`.  `__stack_top` will be accessible from any program linked with this script (assuming the program itself does not also define something named `__stack_top`).  We set the value of `__stack_top` to be `ORIGIN(RAM)`, which we know is `0x80000000`, plus `LENGTH(RAM)`, which we know is 128 megabytes (`0x8000000` bytes).  This means our `__stack_top` is set to `0x88000000`.
 
 For brevity's sake I won't include the entire linker file here, but if you want the final product you can view/download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
 
 ### Stop!  <s>Hammertime</s> Runtime!
-<div style="margin-top: -30px; margin-bottom: 7px;"><sub><sup><sub><sup><a href="https://www.youtube.com/watch?v=otCpCn0l4Wo">https://www.youtube.com/watch?v=otCpCn0l4Wo</a></sup></sub></sup></sub></div>
+<div style="margin-top: -30px; margin-bottom: 10px;"><sub><sup><sub><sup><a href="https://www.youtube.com/watch?v=otCpCn0l4Wo">https://www.youtube.com/watch?v=otCpCn0l4Wo</a></sup></sub></sup></sub></div>
 
 We finally have all we need to create a custom C runtime that works for us, so let's get started.  What we need is actually very simple - here is `crt0.s` in its entirety:
 
@@ -324,7 +330,7 @@ _start:
     .end
 {% endhighlight %}
 
-The first thing you may notice is that there are a lot of lines that begin with a `.`.  This is an assembly file, meaning the program that will be looking at this is the assembler, which in the GNU world is the `as` executable.  The lines that begin with `.`s are actually [assembler directives](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), which provide information to the assembler rather than acting as executable code like our actual RISC-V assembly instructions (such as `jal` and `add`).
+The first thing you may notice is that there are a lot of lines that begin with a `.`.  This is an assembly file, meaning the program that will be looking at this is the assembler, which in the GNU world is the `as` executable.  The lines that begin with `.`s are called [assembler directives](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), which provide information to the assembler rather than acting as executable code like our actual RISC-V assembly instructions, such as `jal` and `add`.
 
 With this knowledge in mind, let's run through this file line-by-line.  We'll be working with various RISC-V standard registers, so [check out this table](https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md#general-registers) for a good overview of each of them and their purpose.
 
@@ -335,7 +341,7 @@ With this knowledge in mind, let's run through this file line-by-line.  We'll be
 Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), this line tells the assembler that we want the following code to go into a section named `.init` that is `a`llocatable and e`x`ecutable.  The `.init` section is [another commonly followed convention](http://l4u-00.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/node3.html) for running your code within the confines of an operating system.  We're running on bare metal with no OS, so this may not be totally necessary in our case, but it's good practice regardless.
 
 {% highlight nasm %}
- .global _start
+.global _start
 _start:
 {% endhighlight %}
 
@@ -349,7 +355,7 @@ _start:
   .cfi_endproc
 {% endhighlight %}
 
-These `.cfi` directives [inform tools, such as the assembler or exception unwinder, about the structure of the frame and how to unwind it.](https://stackoverflow.com/a/33732119/2421349)  `.cfi_startproc` and `.cfi_endproc` signal the start and end of a function, and `.cfi_undefined ra` tells the assembler that register `ra` [should not be restored](https://sourceware.org/binutils/docs/as/CFI-directives.html) to whatever value it contained before `_start` ran.
+These `.cfi` directives [inform tools, such as the assembler or exception unwinder, about the structure of the frame and how to unwind it.](https://stackoverflow.com/a/33732119/2421349)  `.cfi_startproc` and `.cfi_endproc` signal the start and end of a function, and `.cfi_undefined ra` [tells the assembler that register `ra` should not be restored](https://sourceware.org/binutils/docs/as/CFI-directives.html) to whatever value it contained before `_start` ran.
 
 {% highlight nasm %}
 .option push
@@ -398,7 +404,7 @@ Here we finally make use the `__stack_top` symbol we worked so tirelessly to cre
 
 Next, `add s0, sp, zero` adds together the value of the `sp` register with the value of the `zero` register (which is actually the `x0` register, hardwired to 0), and finally places it into the `s0` register.  `s0` is a [special register](https://github.com/riscv/riscv-asm-manual/blob/master/riscv-asm.md#general-registers) in a few ways.  First, it is what is known as a "saved register" meaning it is preserved across function calls.  Second, `s0` sometimes acts as the frame pointer, which enables each function invocation to maintain it's own little space on the stack for storing parameters passed into that function.  How function calls work with the stack and frame pointers is a very interesting subject and could easily be a full-length post on it's own, but for now just know that initializing our frame pointer `s0` is an important task for our runtime.
 
-The next instruction we see is `jal zero, main`.  `jal` stands for "`j`ump `a`nd `l`ink", and expects operands in the form of `jal rd (destination register), offset_address`.  Functionally, `jal` writes the value of the next instruction (the `pc` register plus four) to the `rd`, and then sets the `pc` register to the current value of `pc` plus the [sign-extended](https://en.wikipedia.org/wiki/Sign_extension) offset, effectively "calling" that address.
+The next instruction we see is `jal zero, main`.  `jal` stands for "`j`ump `a`nd `l`ink", and expects operands in the form of `jal rd (destination register), offset_address`.  Functionally, `jal` writes the value of the next instruction (the `pc` register plus four) to the `rd`, and then sets the `pc` register to the current value of `pc` plus the [sign-extended](https://en.wikipedia.org/wiki/Sign_extension) offset address, effectively "calling" that address.
 
 As mentioned in the previous paragraph, `x0` is hardwired to the literal value of `0`, and writes to it have no effect.  With this in mind, you may think it's odd that we're using the `zero` register, which RISC-V assemblers interpret as the `x0` register, as our destination register, since this effectively creates an unconditional and side-effect free jump to `offset_address`.  Why do it this way, you may wonder...don't other ISAs have an explicit unconditional jump instruction?  This odd `jal zero, offset_address` pattern is actually a clever optimization enabled by the dedication of one whole register to a hard-wired zero.  Each supported instruction means a larger, and therefore more expensive, processor, so the simpler the ISA the better.  Rather than polluting the instruction space with both `jal` and `unconditional jump` instructions, the RISC-V ISA only calls for `jal`, but through `jal zero, main` supports unconditional jumps.  
 
@@ -442,14 +448,15 @@ You'll notice we have specified _a lot_ more flags than we did last time, so let
 
 `-ffreestanding` [tells the compiler that the standard library may not exist](https://stackoverflow.com/questions/17692428/what-is-ffreestanding-option-in-gcc#17692510), and therefore not make assumptions that it will be there.  This option isn't necessary when running your application in a hosted environment (within an OS), but we aren't doing that, so it's important to tell the compiler that information.
 
-`-Wl` is a comma-separated list of flags to pass on to the linker (`ld`).  `--gc-sections` stands for "garbage collect sections", and tells `ld` to remove unused sections post-link. `-nostartfiles`, `-nostdlib`, and `-nodefaultlibs` respectively tell the linker not to link in any standard system startup files (such as the default `crt0`), any standard system stdlib implementation, or any standard system default linkable libraries.  Once again, we are not running in an OS, and are not providing any of these things ourselves, so let's make sure the linker knows to exclude them.
+`-Wl` is a comma-separated list of flags to pass on to the linker (`ld`).  `--gc-sections` stands for "garbage collect sections", and tells `ld` to remove unused sections post-link. `-nostartfiles`, `-nostdlib`, and `-nodefaultlibs` respectively tell the linker not to link in any standard system startup files (such as the default `crt0`), any standard system stdlib implementation, or any standard system default linkable libraries.  We are providing our own `crt0` and linker script, so it's important to pass these flags to inform the compiler we don't want any of these defaults to avoid conflict with our custom setup.
 
-`-T` allows you to specify the path to and name of your linker script, which in our case is called `riscv64-virt.ld`. Finally, we specify the files we wish to compile, assemble, and link: `crt0.s` and `add.c`.  As with before, this all results in a fully-fledged and ready-to-run executable called `a.out`.
+`-T` allows you to specify the path to your linker script, which in our case is simply `riscv64-virt.ld`. Finally, we specify the files we wish to compile, assemble, and link: `crt0.s` and `add.c`.  As with before, this all results in a fully-fledged and ready-to-run executable called `a.out`.
 
 We'll now start our shiny new executable in `qemu`:
 
 {% highlight bash %}
-# -S freezes execution of our executable (-kernel) until we explicitly tell it to start with a 'continue' or 'c' from our gdb client
+# -S freezes execution of our executable (-kernel) until we explicitly tell 
+# it to start with a 'continue' or 'c' from our gdb client
 $ qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -S -kernel a.out
 {% endhighlight %}
 
@@ -477,7 +484,7 @@ Reading symbols from a.out...
 (gdb)
 {% endhighlight %}
 
-Next, we'll connect our running `gdb` client to the `gdb` server we started as part of our `qemu` command:
+Next, we'll connect our `gdb` client to the `gdb` server we started as part of our `qemu` command:
 
 {% highlight bash %}
 (gdb) target remote :1234                                                                             │
