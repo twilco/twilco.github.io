@@ -2,7 +2,7 @@
 layout: post
 title:  "RISC-V from scratch 2: Hardware layouts, linker scripts, and C runtimes"
 date:   2019-04-27 12:42:53
-categories: riscv toolchain
+categories: riscv-from-scratch
 ---
 
 {: .no_toc}

@@ -2,7 +2,7 @@
 layout: post
 title:  "RISC-V from scratch 1: Introduction, toolchain setup, and hello world!"
 date:   2019-03-10 12:42:53
-categories: riscv toolchain
+categories: riscv-from-scratch
 ---
 
 {: .no_toc}
