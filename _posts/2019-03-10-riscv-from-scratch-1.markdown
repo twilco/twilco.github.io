@@ -3,6 +3,7 @@ layout: post
 title:  "RISC-V from scratch 1: Introduction, toolchain setup, and hello world!"
 date:   2019-03-10 12:42:53
 categories: riscv-from-scratch
+description: A post that discusses what RISC-V is and why it's important, teaches readers how to install the GNU RISC-V toolchain, and walks through building and running a simple C program on emulated RISC-V hardware.
 ---
 
 {: .no_toc}
@@ -14,7 +15,7 @@ categories: riscv-from-scratch
 
 Welcome to part one of *RISC-V from scratch*!  Throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  I am a web developer by trade, and as such I'm not exposed to these things on a daily basis.  However, I think they are very interesting - hence this series!  Join me on a very much unstructured journey into the depths of all things low-level.
 
-In this first post, we'll talk a little bit about what RISC-V is, why it's important, and finish up by setting up a RISC-V toolchain and building and running a simple RISC-V program.
+In this first post, we'll talk a little bit about what RISC-V is and why it's important, set up a RISC-V toolchain, and finish up with building and running a simple C program on emulated RISC-V hardware.
 
 ### So what is RISC-V?
 
