@@ -8,6 +8,34 @@ layout: default
     <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
   </header>
 
+  {% if page.categories %}
+    {% assign category = page.categories[0] %}
+    {% assign posts = site.categories[category] %}
+    {% for post in posts %}
+      {% if post.url == page.url %}
+        {% assign post_index0 = forloop.index0 %}
+        {% assign post_index1 = forloop.index %}
+      {% endif %}
+    {% endfor %}
+    {% for post in posts %}
+      {% if post_index0 == forloop.index %}
+        {% assign next_post = post %}
+      {% endif %}
+      {% if post_index1 == forloop.index0 %}
+        {% assign prev_post = post %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  <div class="post-category-navigation">
+    {% if prev_post != nil %}
+      <a class="prev" href="{{ prev_post.url }}">&laquo; {{ prev_post.title }}</a>
+    {% endif %}
+    {% if next_post != nil %}
+      <a class="next" href="{{ next_post.url }}">{{ next_post.title }} &raquo;</a>
+    {% endif %}
+  </div>
+
   <article class="post-content" style="margin-bottom: 0px">
     {{ content }}
   </article>

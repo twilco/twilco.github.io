@@ -1,4 +1,24 @@
 /**
+ * Some custom layout CSS
+ */
+.post-category-navigation {
+  font-size: 14px;
+  display: block;
+  width: auto;
+  overflow: hidden;
+}
+
+.post-category-navigation a {
+  display: block;
+  width: 50%;
+  float: left;
+  margin: 1em 0;
+}
+
+.post-category-navigation .next {
+  text-align: right;
+}
+/**
  * Site header
  */
 .site-header {
