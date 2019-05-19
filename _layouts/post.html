@@ -8,8 +8,17 @@ layout: default
     <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
   </header>
 
-  <article class="post-content">
+  <article class="post-content" style="margin-bottom: 0px">
     {{ content }}
   </article>
+
+  <script src="https://utteranc.es/client.js"
+        repo="twilco/twilco.github.io"
+        issue-term="title"
+        label="post comments"
+        theme="github-light"
+        crossorigin="anonymous"
+        async>
+  </script>
 
 </div>
