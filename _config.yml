@@ -9,6 +9,7 @@ github_username: twilco
 
 plugins:
   - jekyll-seo-tag
+  - jekyll-feed
 
 # Build settings
 markdown: kramdown
