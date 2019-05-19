@@ -7,5 +7,8 @@ url: "https://github.com/twilco" # the base hostname & protocol for your site
 twitter_username: tylerwilcock 
 github_username: twilco
 
+plugins:
+  - jekyll-seo-tag
+
 # Build settings
 markdown: kramdown
