@@ -3,7 +3,7 @@ layout: post
 title:  "RISC-V from scratch 2: Hardware layouts, linker scripts, and C runtimes"
 date:   2019-04-27 12:42:53
 categories: riscv-from-scratch
-description: A post describing how C programs get to the main function, reviewing devicetree layouts, linker scripts, minimal C runtimes, GDB and QEMU, basic RISC-V assembly, and other topics along the way.
+description: A post describing how C programs get to the main function.  Devicetree layouts, linker scripts, minimal C runtimes, GDB and QEMU, basic RISC-V assembly, and other topics are reviewed along the way.
 ---
 
 {: .no_toc}
