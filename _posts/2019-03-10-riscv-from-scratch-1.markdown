@@ -85,8 +85,6 @@ make software
 And we should (finally) be all set!  [As is tradition](https://stackoverflow.com/a/12785204), let's start with the "Hello, world" program provided by `freedom-e-sdk`.
 
 {% highlight bash %}
-07:38:47 PM twilcock ( master  | … )
-~/projects/freedom-e-sdk
 qemu-system-riscv32 -nographic -machine sifive_e -kernel software/hello/debug/hello.elf
 Hello, World!
 {% endhighlight %}
