@@ -26,7 +26,7 @@ If you missed the previous post in this series and don't have `riscv-qemu` and t
 Let's start our journey with a simple C program that infinitely adds two numbers together.
 
 {% highlight bash %}
-$ cat add.c
+cat add.c
 int main() {
     int a = 4;
     int b = 12;
@@ -43,7 +43,7 @@ We want to run this program, and the first step on that path is compiling it int
 # -O0 to disable all optimizations. Without this, GCC might optimize 
 # away our infinite addition since the result 'c' is never used.
 # -g to tell GCC to preserve debug info in our executable.
-$ riscv64-unknown-elf-gcc add.c -O0 -g
+riscv64-unknown-elf-gcc add.c -O0 -g
 {% endhighlight %}
 
 This produces a file called `a.out`, which is the default name `gcc` gives executables when we don't tell it what we want them to be called.  We can now run this brand new executable inside `qemu`:
@@ -57,7 +57,7 @@ This produces a file called `a.out`, which is the default name `gcc` gives execu
 # TCP is the means of communication.
 # -kernel tells QEMU what we're looking to run, even if our executable isn't 
 # exactly a "kernel".
-$ qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out
+qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out
 {% endhighlight %}
 
 We've chosen the `virt` RISC-V machine, which is one `riscv-qemu` [comes with out of the box](https://github.com/riscv/riscv-qemu/wiki#machines).  
@@ -68,7 +68,7 @@ Now that our program is running inside QEMU with a GDB server on host `localhost
 # --tui gives us a (t)extual (ui) for our GDB session.
 # While we can start GDB without any arguments, specifying 'a.out' tells GDB 
 # to load debug symbols from that file for the newly created session.
-$ riscv64-unknown-elf-gdb --tui a.out
+riscv64-unknown-elf-gdb --tui a.out
 {% endhighlight %}
 
 And we should now find ourselves inside GDB!
@@ -133,7 +133,7 @@ To figure out what's going on here, we need to take a detour and talk about how 
 To answer these questions, let's re-run our GCC command with the `-v` flag to get a more verbose output of what it is actually doing.
 
 {% highlight bash %}
-$ riscv64-unknown-elf-gcc add.c -O0 -g -v
+riscv64-unknown-elf-gcc add.c -O0 -g -v
 {% endhighlight %}
 
 There's quite a lot we get back so we won't look through it all.  The first important thing of note is that even though GCC stands for "GNU C Compiler", `gcc` _also_ by default links our code in addition to compiling and assembling it (`-c` tells GCC only to compile and assemble).  Why is this relevant?  Well, take a look at this snippet pulled from our verbose `gcc` command:
@@ -179,14 +179,14 @@ Circling back to the `qemu` command we ran at the beginning of this post (`qemu-
 {% highlight bash %}
 # Go to the ~/usys/riscv folder we created before and create a new dir 
 # for our machine information.
-$ cd ~/usys/riscv && mkdir machines
-$ cd machines
+cd ~/usys/riscv && mkdir machines
+cd machines
 
 # Use qemu to dump info about the 'virt' machine in dtb (device tree blob) 
 # format.
 # The data in this file represents hardware components of a given 
 # machine / device / board.
-$ qemu-system-riscv64 -machine virt -machine dumpdtb=riscv64-virt.dtb
+qemu-system-riscv64 -machine virt -machine dumpdtb=riscv64-virt.dtb
 {% endhighlight %}
 
 Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (device tree compiler) that can convert it into something more human-readable.
@@ -194,15 +194,15 @@ Data in `dtb` format is difficult to read considering it's mostly binary, but th
 {% highlight bash %}
 # I'm running MacOS, so I use Homebrew to install this. If you're
 # running another OS you may need to do something else.
-$ brew install dtc
+brew install dtc
 # Convert our .dtb into a human-readable .dts (device tree source) file.
-$ dtc -I dtb -O dts -o riscv64-virt.dts riscv64-virt.dtb
+dtc -I dtb -O dts -o riscv64-virt.dts riscv64-virt.dtb
 {% endhighlight %}
 
 This gives us a file called `riscv64-virt.dts`, which has lots of interesting information about `virt` such as the number of available CPU cores, the memory location of various peripherals such as the UART, and the memory location of the onboard memory (RAM).  We want our stack to live inside this memory, so let's `grep` for it:
 
 {% highlight bash %}
-$ grep memory riscv64-virt.dst -A 3
+grep memory riscv64-virt.dst -A 3
         memory@80000000 {
                 device_type = "memory";
                 reg = <0x00 0x80000000 0x00 0x8000000>;
@@ -216,7 +216,7 @@ Referencing [the devicetree specification](https://www.devicetree.org/downloads/
 Again referencing the [devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf) (search for "Property name: reg"), we learn that the number of `<u32>` cells required to specify the address and length is determined by the `#address-cells` and `#size-cells` properties in the parent of node (or in the node itself).  These values aren't specified in our `memory` node, and the parent of the `memory` node is simply the root portion of the file, so let's look there for these values:
 
 {% highlight bash %}
-$ head -n8 riscv64-virt.dts
+head -n8 riscv64-virt.dts
 /dts-v1/;
 
 / {
@@ -430,7 +430,7 @@ To recap, we've worked through many problems in our quest of debugging a simple 
 As a reminder, here was our program:
 
 {% highlight c %}
-$ cat add.c
+cat add.c
 int main() {
     int a = 4;
     int b = 12;
@@ -460,13 +460,13 @@ We'll now start our shiny new executable in `qemu`:
 {% highlight bash %}
 # -S freezes execution of our executable (-kernel) until we explicitly tell 
 # it to start with a 'continue' or 'c' from our gdb client
-$ qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -S -kernel a.out
+qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -S -kernel a.out
 {% endhighlight %}
 
 And then start `gdb`, making sure to load the debug symbols for `a.out` by specifying it as our last argument:
 
 {% highlight bash %}
-$ riscv64-unknown-elf-gdb --tui a.out
+riscv64-unknown-elf-gdb --tui a.out
 
 GNU gdb (GDB) 8.2.90.20190228-git
 Copyright (C) 2019 Free Software Foundation, Inc.
