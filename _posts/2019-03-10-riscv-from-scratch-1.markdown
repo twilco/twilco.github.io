@@ -46,7 +46,7 @@ tar -xvf openocd-<date>-<platform>.tar.gz
 tar -xvf riscv64-unknown-elf-gcc-<date>-<platform>.tar.gz
 {% endhighlight %}
 {:start="3"}
-3. Set the `RISCV_OPENOCD_PATH` and `RISCV_PATH` environment variables so other programs can find our toolchain.  This may look different depending on your OS and shell - I had to add these exports to my `~/.zshenv` file.  
+3. Set the `RISCV_OPENOCD_PATH` and `RISCV_PATH` environment variables so other programs can find our toolchain.  This may look different depending on your OS and shell - I had to add these exports to my `~/.zshenv` file.
 
 {% highlight bash %}
 # I put these two exports directly in my ~/.zshenv file - you may have to do something else.
@@ -87,7 +87,7 @@ And we should (finally) be all set!  [As is tradition](https://stackoverflow.com
 {% highlight bash %}
 07:38:47 PM twilcock ( master  | … )
 ~/projects/freedom-e-sdk
-$ qemu-system-riscv32 -nographic -machine sifive_e -kernel software/hello/hello
+$ qemu-system-riscv32 -nographic -machine sifive_e -kernel software/hello/debug/hello.elf
 Hello, World!
 {% endhighlight %}
 
