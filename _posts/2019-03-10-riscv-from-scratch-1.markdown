@@ -25,20 +25,14 @@ RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now
 
 ### QEMU and RISC-V toolchain setup
 
-We won't be able to run any code on a RISC-V processor until we have an environment to do it in.  Fortunately, we don't need a physical RISC-V processor to do this - we'll instead be using [qemu-riscv](https://github.com/riscv/riscv-qemu/wiki).  Follow the install instructions for your operating system [here](https://github.com/riscv/riscv-qemu/wiki#build-and-install).  I'm using MacOS, so for me this was as easy as:
+We won't be able to run any code on a RISC-V processor until we have an environment to do it in.  Fortunately, we don't need a physical RISC-V processor to do this - we'll instead be using [qemu](https://www.qemu.org).  To install `qemu`, follow the [instructions for your operating system here](https://www.qemu.org/download).  I'm using MacOS, so for me this was as easy as:
 
 {% highlight bash %}
-# create a directory to put our risc-v emulators, toolchain, etc
-mkdir -p ~/usys/riscv && cd ~/usys/riscv
-git clone --recursive https://github.com/riscv/riscv-qemu.git
-cd riscv-qemu
-./configure \
-    --target-list=riscv64-softmmu,riscv32-softmmu
-make -j$(nproc)
-make install
+# also available via MacPorts - `sudo port install qemu`
+brew install qemu
 {% endhighlight %}
 
-The instance of `qemu` we just built comes with [a few machines](https://github.com/riscv/riscv-qemu/wiki#machines) (specified via the `qemu-system-riscv32 -machine` option) ready to go, which is a nice convenience.
+The instance of `qemu` we just installed comes with [a few machines](https://github.com/riscv/riscv-qemu/wiki#machines) (specified via the `qemu-system-riscv32 -machine` option) ready to go, which is a nice convenience.
 
 Next, let's install a RISC-V compatible copy of [OpenOCD](http://openocd.org/) and the RISC-V toolchain.
 
