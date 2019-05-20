@@ -19,7 +19,7 @@ The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C prog
 
 In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program set up and running, and finally invoke GDB and step through our program.
 
-If you missed the previous post in this series and don't have `riscv-qemu` and the RISC-V toolchain installed and were hoping to follow along, jump to the ["QEMU and RISC-V toolchain setup"](/riscv/toolchain/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) section (or in RISC-V assembly, `jal x0, qemu_and_toolchain_setup`) and complete that before moving on.
+If you missed the previous post in this series and don't have `riscv-qemu` and the RISC-V toolchain installed and were hoping to follow along, jump to the ["QEMU and RISC-V toolchain setup"](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) section (or in RISC-V assembly, `jal x0, qemu_and_toolchain_setup`) and complete that before moving on.
 
 ### The naive approach 
 
