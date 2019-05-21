@@ -202,7 +202,7 @@ dtc -I dtb -O dts -o riscv64-virt.dts riscv64-virt.dtb
 This gives us a file called `riscv64-virt.dts`, which has lots of interesting information about `virt` such as the number of available CPU cores, the memory location of various peripherals such as the UART, and the memory location of the onboard memory (RAM).  We want our stack to live inside this memory, so let's `grep` for it:
 
 {% highlight bash %}
-grep memory riscv64-virt.dst -A 3
+grep memory riscv64-virt.dts -A 3
         memory@80000000 {
                 device_type = "memory";
                 reg = <0x00 0x80000000 0x00 0x8000000>;
