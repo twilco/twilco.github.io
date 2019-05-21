@@ -37,8 +37,9 @@ The instance of `qemu` we just installed comes with [a few machines](https://git
 Next, let's install a RISC-V compatible copy of [OpenOCD](http://openocd.org/) and the RISC-V toolchain.
 
 1. Download prebuilt versions of the RISC-V OpenOCD and the RISC-V toolchain from here: <https://www.sifive.com/boards>
-2. Move and extract these files into the `~/usys/riscv` directory we created earlier.
+2. Move and extract these files into a directory of your choosing.   I elected to create one called `~/usys/riscv` for this and other RISC-V toolchain / QEMU needs.  Remember the directory you choose as we'll be using it both in this post and in the next.
 {% highlight bash %}
+mkdir -p ~/usys/riscv && cd ~/usys/riscv
 cp openocd-<date>-<platform>.tar.gz ~/usys/riscv
 cp riscv64-unknown-elf-gcc-<date>-<platform>.tar.gz ~/usys/riscv
 cd ~/usys/riscv
