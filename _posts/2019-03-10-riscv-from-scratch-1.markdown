@@ -70,6 +70,15 @@ Et voilà, we have a working RISC-V toolchain!  All our executables, such as `ri
 
 ### Hello, RISC-V!
 
+**Update to this section as of May 26, 2019:** 
+
+Unfortunately, due to a bug introduced in RISC-V QEMU, running the [freedom-e-sdk](https://github.com/sifive/freedom-e-sdk) "hello world" program via QEMU no longer works.  A patch has been introduced to address the issue, but for now you can feel free to skip this section.  The `freedom-e-sdk` is not necessary for future posts in this series.  I will keep a watch on this issue and update this post after it's fixed.
+
+For more information, see this comment: [https://github.com/sifive/freedom-e-sdk/issues/260#issuecomment-496037827](https://github.com/sifive/freedom-e-sdk/issues/260#issuecomment-496037827)
+
+---
+<br/>
+
 Now that we have our toolchain setup, let's run an example RISC-V program.  I previously linked a SiFive repository called [freedom-e-sdk](https://github.com/sifive/freedom-e-sdk), which provides various programs we can try out.  Begin by recursively cloning this repository:
 
 {% highlight bash %}
