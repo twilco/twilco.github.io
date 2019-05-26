@@ -78,13 +78,13 @@ git clone --recursive https://github.com/sifive/freedom-e-sdk.git
 cd freedom-e-sdk
 {% endhighlight %}
 
-And then compile all the example programs they provide:
+[As is tradition](https://stackoverflow.com/a/12785204), let's start with the "Hello, world" program provided by `freedom-e-sdk`.  We'll use the `Makefile` they provide to compile this program in debug mode against the "sifive-hifive1" target:
 
 {% highlight bash %}
-make software
+make PROGRAM=hello TARGET=sifive-hifive1 CONFIGURATION=debug software
 {% endhighlight %}
 
-And we should (finally) be all set!  [As is tradition](https://stackoverflow.com/a/12785204), let's start with the "Hello, world" program provided by `freedom-e-sdk`.
+And finish by running it in QEMU:
 
 {% highlight bash %}
 qemu-system-riscv32 -nographic -machine sifive_e -kernel software/hello/debug/hello.elf
