@@ -116,7 +116,7 @@ You'll quickly notice that we just keep continuing, and continuing, and continui
 
 Let's take a look at our interface, which for me looked like:
 
-![gdb interface displaying various red flags](/assets/img/naive_gdb.png)
+<a href="/assets/img/naive_gdb.png">![gdb interface displaying various red flags](/assets/img/naive_gdb.png)</a>
 
 There are several red flags here:
 
@@ -512,7 +512,7 @@ Breakpoint 1, main () at add.c:2
 
 You'll notice from the above output that we have successfully hit a breakpoint on line 2!  Our text interface also shows this via the `B+>` gutter annotation, and we finally have a proper line `L` and `PC:` value - `L2` and `PC: 0x8000001e`.  If you've been following along, yours might look something like this:
 
-![add.c with breakpoint triggered on line 2](/assets/img/working_gdb.png)
+<a href="/assets/img/working_gdb.png">![add.c with breakpoint triggered on line 2](/assets/img/working_gdb.png)</a>
 
 From here we can use `gdb` as normal - `s` to step to the next instruction, `info all-registers` to inspect the values inside our registers as our program executes, so on and so forth.  Experiment to your hearts content...we certainly worked hard enough to get here!
 
