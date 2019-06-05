@@ -444,7 +444,9 @@ int main() {
 And now to compile and link:
 
 {% highlight bash %}
-riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections -nostartfiles -nostdlib -nodefaultlibs -Wl,-T,riscv64-virt.ld crt0.s add.c
+riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections \
+    -nostartfiles -nostdlib -nodefaultlibs -Wl,-T,riscv64-virt.ld \
+    crt0.s ns16550a.s
 {% endhighlight %}
 
 You'll notice we have specified _a lot_ more flags than we did last time, so let's walk through all the ones we didn't cover in the first section. 
