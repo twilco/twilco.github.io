@@ -26,6 +26,19 @@
   opacity: 1;
 }
 
+div.indented-list-item {
+  font-weight: bold;
+  margin-left: 1rem;
+}
+
+p.indented-list-item-subtext {
+  margin-left: 2.5rem;
+}
+
+/**
+ * Begin factory-default Jekyll stuff
+ */
+
 /**
  * Reset some basic elements
  */
@@ -35,8 +48,6 @@ dl, dd, ol, ul, figure {
     margin: 0;
     padding: 0;
 }
-
-
 
 /**
  * Basic styling
