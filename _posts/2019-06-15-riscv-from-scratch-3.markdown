@@ -6,6 +6,11 @@ categories: riscv-from-scratch
 description: TODO do this
 ---
 
+This post is a work-in-progress.  Stay tuned for a finished product!
+
+---
+<br/>
+
 {: .no_toc}
 #### Table of contents
 1. TOC
