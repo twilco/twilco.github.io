@@ -6,6 +6,7 @@ baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://twilco.github.io" # the base hostname & protocol for your site
 twitter_username: tylerwilcock 
 github_username: twilco
+future: true # enable display of posts with their dates set in the future
 
 plugins:
   - jekyll-seo-tag
