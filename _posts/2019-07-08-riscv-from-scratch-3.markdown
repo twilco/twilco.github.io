@@ -250,7 +250,7 @@ SECTIONS
 ...more below...
 {% endhighlight %}
 
-### Wrapping up and next steps
+### Next steps
 
 Today we learned about UARTs and USARTs, the NS16550A specification, interrupts, and even more devicetree properties.  We also have created a solid skeleton for our UART assembly driver, and have codified the `__uart_base_addr` as a symbol in our linker file for easy UART register access.
 
