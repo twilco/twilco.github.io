@@ -211,9 +211,9 @@ grep memory riscv64-virt.dts -A 3
 
 We see that the `device_type` for this node is "memory", which means we've probably found what we're looking for.  Using the values inside `reg = <...>;`, we can also determine where this memory bank starts and how long it is.
 
-Referencing [the devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf), we see that the syntax for `reg` is an arbitrary number of `(base_address, length)` pairs.  However, there are four values inside `reg` - shouldn't there only be two necessary to define our singular memory bank?
+Referencing [the devicetree specification](https://buildmedia.readthedocs.org/media/pdf/devicetree-specification/latest/devicetree-specification.pdf), we see that the syntax for `reg` is an arbitrary number of `(base_address, length)` pairs.  However, there are four values inside `reg` - shouldn't there only be two necessary to define our singular memory bank?
 
-Again referencing the [devicetree specification](https://www.devicetree.org/downloads/devicetree-specification-v0.1-20160524.pdf) (search for "Property name: reg"), we learn that the number of `<u32>` cells required to specify the address and length is determined by the `#address-cells` and `#size-cells` properties in the parent of node (or in the node itself).  These values aren't specified in our `memory` node, and the parent of the `memory` node is simply the root portion of the file, so let's look there for these values:
+Again referencing the [devicetree specification](https://buildmedia.readthedocs.org/media/pdf/devicetree-specification/latest/devicetree-specification.pdf) (search for "Property name: reg"), we learn that the number of `<u32>` cells required to specify the address and length is determined by the `#address-cells` and `#size-cells` properties in the parent of node (or in the node itself).  These values aren't specified in our `memory` node, and the parent of the `memory` node is simply the root portion of the file, so let's look there for these values:
 
 {% highlight bash %}
 head -n8 riscv64-virt.dts
