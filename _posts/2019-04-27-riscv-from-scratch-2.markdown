@@ -31,7 +31,6 @@ git clone git@github.com:twilco/riscv-from-scratch.git
 # via HTTPS rather than SSH
 # alternatively, if you are a GitHub user, you can fork this repo.
 # https://help.github.com/en/articles/fork-a-repo
-
 cd riscv-from-scratch/work
 {% endhighlight %}
 
@@ -530,9 +529,11 @@ From here we can use `gdb` as normal - `s` to step to the next instruction, `inf
 
 ### What's next
 
-We accomplished, and hopefully learned, a lot today!  I've never had a formal plan for this series, instead simply following whatever is most interesting to me at each moment, so I'm not sure exactly sure what will come next.  I particularly enjoyed the deep dive we took into the `jal` instruction, so perhaps in our next post we'll build upon the foundation we created here but instead replace `add.c` with some pure RISC-V assembly program.  If you have something in particular you'd like to see or have any questions about what we covered here, let me know by opening an issue at [https://github.com/twilco/twilco.github.io/issues](https://github.com/twilco/twilco.github.io/issues).  After the next post in the series is complete I'll link to it below.
+In our next post, we'll continue to build on our knowledge of RISC-V assembly by beginning implementation of a driver for the UART onboard the `virt` QEMU machine.  Expect to learn about what a UART is and how it works, additional devicetree properties, the basic building blocks required to implement an NS16550A-compatible UART driver, and more.
 
-Thanks for reading, and hope to see you in the next post!
+Sound interesting?  This post has been released - [click here to check it out](https://twilco.github.io{% post_url 2019-07-08-riscv-from-scratch-3 %}).  If you have any questions, comments, or corrections, feel free to [open up an issue](https://github.com/twilco/twilco.github.io/issues) or leave a comment below via [utterances](https://github.com/utterance/utterances).
+
+Thanks for reading!
 
 ### Extra credit
 

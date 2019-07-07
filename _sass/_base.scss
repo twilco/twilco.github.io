@@ -35,6 +35,14 @@ p.indented-list-item-subtext {
   margin-left: 2.5rem;
 }
 
+ol.bold {
+  font-weight: bold;
+}
+
+ol.bold > li > span.non-bold {
+  font-weight: 300;
+}
+
 /**
  * Begin factory-default Jekyll stuff
  */
