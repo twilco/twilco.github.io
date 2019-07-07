@@ -3,7 +3,7 @@ layout: post
 title:  "RISC-V from scratch 3: Writing a UART driver in assembly (1 / 3)"
 date:   2019-06-15 12:42:53
 categories: riscv-from-scratch
-description: TODO do this
+description: A post describing how UARTs work, and the beginning of an implementation for an NS16550A-compatible UART driver in RISC-V assembly.
 ---
 
 {: .no_toc}
