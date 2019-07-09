@@ -17,7 +17,7 @@ Welcome to the third post in the *RISC-V from scratch* series!  As a quick recap
 
 In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, set up the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor.  In the [second post of this series]({% post_url 2019-04-27-riscv-from-scratch-2 %}), we reviewed devicetree layouts, linker scripts, basic RISC-V assembly, minimal C runtimes, and more, all in an effort to understand how we get to the `main` function.
 
-As just mentioned, in the previous post we used the [dtc](http://manpages.ubuntu.com/manpages/disco/man1/dtc.1.html) tool to inspect the layout of various hardware components in the `virt` QEMU virtual machine.  Our intention at that point was to determine at what address the RAM lived at within that machine, but you may also recall that `virt` had lots of other interesting components, one of which being an onboard UART.
+In the previous post we used the [dtc](http://manpages.ubuntu.com/manpages/disco/man1/dtc.1.html) tool to inspect the layout of various hardware components in the `virt` QEMU virtual machine.  Our intention at that point was to determine at what address the RAM lived at within that machine, but you may also recall that `virt` had lots of other interesting components, one of which being an onboard UART.
 
 In order to further expand our knowledge of RISC-V assembly, we'll spend the next three posts writing a driver for this UART, deeply exploring important concepts such as ABIs, function prologues and epilogues, and low-level stack manipulation along the way.
 
