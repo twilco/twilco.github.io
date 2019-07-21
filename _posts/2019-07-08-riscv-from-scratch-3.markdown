@@ -41,23 +41,34 @@ UARTs and USARTs are all around you, even if you may not realize it.  They are b
 
 ### Setup
 
-Before we get down to writing our driver, we'll need a few things set up to ensure we can properly compile and link.  If you've worked through the previous two posts in this series, you shouldn't have to do anything here, although you may want to make a copy of our linker script and runtime files in the new directory we create.
+Before we get down to writing our driver, we'll need a few things set up to ensure we can properly compile and link.  If you've worked through the previous two posts in this series you shouldn't have to do anything here beyond a `cd some/path/to/riscv-from-scratch/work`.
 
-In the [previous post]({% post_url 2019-04-27-riscv-from-scratch-2 %}), we customized the default linker script to expose a `__stack_top` symbol and created a minimal C runtime to perform basic initialization tasks, namely setting up the stack and global pointers and calling into `main`.  That post details why these things are important, but that information is unnecessary to continue on in this post, so feel free to simply download the necessary files here:
+However, if you missed the previous posts in this series:
 
-[crt0.s](/assets/crt0.s)
-
-[riscv64-virt.ld](/assets/ld/riscv64-virt.ld)
-
-Now that you have downloaded these files (or if you have them from the previous post), move or copy them into a new directory which will serve as the workspace for today's post.
-
+1. Ensure you have `riscv-qemu` and the RISC-V toolchain installed.  You can follow [these instructions](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) from the first post to complete this.
+2. Clone or fork the [riscv-from-scratch repo](https://github.com/twilco/riscv-from-scratch):
 {% highlight bash %}
-mkdir -p ~/projects/riscv-uart
-mv ~/Downloads/crt0.s ~/projects/riscv-uart
-mv ~/Downloads/riscv64-virt.ld ~/projects/riscv-uart
+git clone git@github.com:twilco/riscv-from-scratch.git
+# or `git clone https://github.com/twilco/riscv-from-scratch.git` to clone
+# via HTTPS rather than SSH
+# alternatively, if you are a GitHub user, you can fork this repo.
+# https://help.github.com/en/articles/fork-a-repo
+
+cd riscv-from-scratch/work
+{% endhighlight %}
+{:start="3"}
+3. Check out the branch that contains the code prerequisites, located in `src`, for this post: <br/>
+{% highlight bash %}
+git checkout pre-uart-driver-skeleton
+{% endhighlight %}
+{:start="4"}
+4. Copy the customized linker script `riscv64-virt.ld` and minimal C runtime `crt0.s` to our working directory: <br/>
+{% highlight bash %}
+# note: this will overwrite any existing files you may have in `work`
+cp -a src/. work
 {% endhighlight %}
 
-You'll also need to have the GNU RISC-V toolchain and QEMU installed to facilitate compilation and emulation.  Follow [these instructions](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) from the first post in this series to complete this.
+If you're curious to know more about this customized linker script and minimal C runtime, check out the [previous post]({% post_url 2019-04-27-riscv-from-scratch-2 %}).
 
 ### Hardware layout in review
 
@@ -114,10 +125,10 @@ This brings us to the last property in our `uart` node, `compatible = "ns16550a"
 
 ### Creating the basic skeleton of our driver
 
-We have all we need to begin writing our driver, so let's begin.  Start by ensuring you're in the directory we created before with our C runtime and linker script:
+We have all we need to begin writing our driver, so let's begin.  Start by ensuring you're in the `riscv-from-scratch/work` directory we created in the setup section:
 
 {% highlight bash %}
-cd ~/projects/riscv-uart
+cd some/path/to/riscv-from-scratch/work
 {% endhighlight %}
 
 Now create a file called `ns16550a.s`, which will contain the code for our NS16550A UART driver.  In this file, let's start with a basic skeleton containing the functions we want to expose.  For now, we'll limit this driver to simply reading and writing chars, or bytes, without worrying about other available capabilities of the NS16550A, such as interrupts.
@@ -154,15 +165,15 @@ riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections \
 This should result in the following error:
 
 {% highlight bash %}
-/Users/twilcock/usys/riscv/riscv64-unknown-elf-gcc-8.2.0-2019.02.0-x86_64-apple-darwin/bin/../lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/bin/ld: /var/folders/rg/hbr8vy7d13z9k7pdn0l_n9z51y1g13/T//ccjYQiJc.o: in function `.L0 ':
-/Users/twilcock/projects/riscv-uart/crt0.s:12: undefined reference to `main'
+/Users/twilco/usys/riscv/riscv64-unknown-elf-gcc-8.2.0-2019.02.0-x86_64-apple-darwin/bin/../lib/gcc/riscv64-unknown-elf/8.2.0/../../../../riscv64-unknown-elf/bin/ld: /var/folders/rg/hbr8vy7d13z9k7pdn0l_n9z51y1g13/T//ccjYQiJc.o: in function `.L0 ':
+/Users/twilco/projects/riscv-from-scratch/work/crt0.s:12: undefined reference to `main'
 collect2: error: ld returned 1 exit status
 {% endhighlight %}
 
 An utter disaster!  Taking a closer look at the error, this line tells us what we need to do:
 
 {% highlight bash %}
-/Users/twilcock/projects/riscv-uart/crt0.s:12: undefined reference to `main`
+/Users/twilco/projects/riscv-from-scratch/work/crt0.s:12: undefined reference to `main`
 {% endhighlight %}
 
 Taking a look at our `crt0.s` file, we do indeed see a reference to a symbol called `main`:
@@ -184,7 +195,7 @@ _start:
     .end
 {% endhighlight %}
 
-This is an easy fix - we simply need to link a file that defines the `main` symbol.  We would've wanted to do this anyways at some point, as we need some way to exercise our UART driver, and we can easily do so from `main`.  Create a new file called `main.c` in our working directory (`~/projects/riscv-uart`) and define a main function.  We'll also call `uart_put_char` to ensure that `main` is able to find our definition of it in `ns16550a.s`.
+This is an easy fix - we simply need to link a file that defines the `main` symbol.  We would've wanted to do this anyways at some point, as we need some way to exercise our UART driver, and we can easily do so from `main`.  Create a new file called `main.c` in our working directory (`riscv-from-scratch/work`) and define a main function.  We'll also call `uart_put_char` to ensure that `main` is able to find our definition of it in `ns16550a.s`.
 
 {% highlight c %}
 int main() {

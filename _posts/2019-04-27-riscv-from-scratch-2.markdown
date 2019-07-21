@@ -19,14 +19,31 @@ The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C prog
 
 In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program set up and running, and finally invoke GDB and step through our program.
 
+### Setup
+
 If you missed the previous post in this series and don't have `riscv-qemu` and the RISC-V toolchain installed and were hoping to follow along, jump to the ["QEMU and RISC-V toolchain setup"](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) section (or in RISC-V assembly, `jal x0, qemu_and_toolchain_setup`) and complete that before moving on.
+
+Next, let's set up a workspace for the code we will write today (and in future posts).
+
+{% highlight bash %}
+git clone git@github.com:twilco/riscv-from-scratch.git
+# or `git clone https://github.com/twilco/riscv-from-scratch.git` to clone
+# via HTTPS rather than SSH
+# alternatively, if you are a GitHub user, you can fork this repo.
+# https://help.github.com/en/articles/fork-a-repo
+
+cd riscv-from-scratch/work
+{% endhighlight %}
+
+As the name suggests, the `work` directory will serve as our working directory for this and future posts.
 
 ### The naive approach 
 
-Let's start our journey with a simple C program that infinitely adds two numbers together.
+Let's start our journey by using the text editor of your choice to create a simple C program called `add.c` that infinitely adds two numbers together.
 
-{% highlight bash %}
-cat add.c
+{% highlight c %}
+// file: riscv-from-scratch/work/add.c
+
 int main() {
     int a = 4;
     int b = 12;
@@ -133,6 +150,7 @@ To figure out what's going on here, we need to take a detour and talk about how 
 To answer these questions, let's re-run our GCC command with the `-v` flag to get a more verbose output of what it is actually doing.
 
 {% highlight bash %}
+# In the `riscv-from-scratch/work` directory...
 riscv64-unknown-elf-gcc add.c -O0 -g -v
 {% endhighlight %}
 
@@ -174,28 +192,25 @@ As we saw above, `gcc` links a default `crt0` unless told to do otherwise.  This
 
 This may work fine in a general case, but is undoubtedly not going to work for every RISC-V processor.  As mentioned previously, one of `crt0`s jobs is to set up the stack, but how can it do that if it doesn't know _where_ the stack should be for the CPU (`-machine`) we're running against?  Answer: it can't, at least not without us giving it a bit of assistance.
 
-Circling back to the `qemu` command we ran at the beginning of this post (`qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out`), recall we were using the `virt` machine.  Fortunately for us, `qemu` exposes a simple way to dump information about a machine in `dtb` (device tree blob) format.
+Circling back to the `qemu` command we ran at the beginning of this post (`qemu-system-riscv64 -machine virt -m 128M -gdb tcp::1234 -kernel a.out`), recall we were using the `virt` machine.  Fortunately for us, `qemu` exposes a simple way to dump information about a machine in `dtb` (devicetree blob) format.
 
 {% highlight bash %}
-# Go to the ~/usys/riscv folder we created before and create a new dir 
-# for our machine information.
-cd ~/usys/riscv && mkdir machines
-cd machines
+# In the `riscv-from-scratch/work` directory...
 
-# Use qemu to dump info about the 'virt' machine in dtb (device tree blob) 
+# Use qemu to dump info about the 'virt' machine in dtb (devicetree blob) 
 # format.
 # The data in this file represents hardware components of a given 
 # machine / device / board.
 qemu-system-riscv64 -machine virt -machine dumpdtb=riscv64-virt.dtb
 {% endhighlight %}
 
-Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (device tree compiler) that can convert it into something more human-readable.
+Data in `dtb` format is difficult to read considering it's mostly binary, but there is a command-line tool called `dtc` (devicetree compiler) that can convert it into something more human-readable.
 
 {% highlight bash %}
 # I'm running MacOS, so I use Homebrew to install this. If you're
 # running another OS you may need to do something else.
 brew install dtc
-# Convert our .dtb into a human-readable .dts (device tree source) file.
+# Convert our .dtb into a human-readable .dts (devicetree source) file.
 dtc -I dtb -O dts -o riscv64-virt.dts riscv64-virt.dtb
 {% endhighlight %}
 
@@ -243,9 +258,7 @@ Rather than writing our own linker file from scratch, it is going to make more s
 Knowing this, let's copy the default linker script `riscv64-unknown-elf-ld` uses into a new file:
 
 {% highlight bash %}
-cd ~/usys/riscv
-# Make a new dir for custom linker scripts out RISC-V CPUs may require.
-mkdir ld && cd ld
+# In the `riscv-from-scratch/work` directory...
 # Copy the default linker script into riscv64-virt.ld
 riscv64-unknown-elf-ld --verbose > riscv64-virt.ld
 {% endhighlight %}
@@ -307,12 +320,10 @@ SECTIONS
 
 As you can see, we use the [PROVIDE command](https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html#PROVIDE) to define a symbol called `__stack_top`.  `__stack_top` will be accessible from any program linked with this script (assuming the program itself does not also define something named `__stack_top`).  We set the value of `__stack_top` to be `ORIGIN(RAM)`, which we know is `0x80000000`, plus `LENGTH(RAM)`, which we know is 128 megabytes (`0x8000000` bytes).  This means our `__stack_top` is set to `0x88000000`.
 
-For brevity's sake I won't include the entire linker file here, but if you want the final product you can view/download it here: [{{ site.url }}{% link /assets/ld/riscv64-virt.ld %}](/assets/ld/riscv64-virt.ld)
-
 ### Stop!  <s>Hammertime</s> Runtime!
 <div style="margin-top: -30px; margin-bottom: 10px;"><sub><sup><sub><sup><a href="https://www.youtube.com/watch?v=otCpCn0l4Wo">https://www.youtube.com/watch?v=otCpCn0l4Wo</a></sup></sub></sup></sub></div>
 
-We finally have all we need to create a custom C runtime that works for us, so let's get started.  What we need is actually very simple - here is `crt0.s` in its entirety:
+We finally have all we need to create a custom C runtime that works for us, so let's get started.  Create a file called `crt0.s` in the `riscv-from-scratch/work/` directory and insert the following:
 
 {% highlight nasm %}
 .section .init, "ax"
@@ -427,10 +438,9 @@ Our very last line is an assembler directive, `.end`, which simply marks the end
 
 To recap, we've worked through many problems in our quest of debugging a simple C program on a RISC-V processor.  We first used `qemu` and `dtc` to find where our memory was located in the `virt` virtual RISC-V machine.  We then used this information to take manual control of the memory layout in our customized version of the default `riscv64-unknown-elf-ld` linker script, which then enabled us to accurately define a `__stack_top` symbol.  We finished by using this symbol in our own custom `crt0.s` that set up our stack and global pointers and finally called the `main` function.  Let's make use of all this work to complete our original goal of debugging our simple C program in GDB.
 
-As a reminder, here was our program:
+As a reminder, here was our `add.c` program:
 
 {% highlight c %}
-cat add.c
 int main() {
     int a = 4;
     int b = 12;
@@ -446,7 +456,7 @@ And now to compile and link:
 {% highlight bash %}
 riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections \
     -nostartfiles -nostdlib -nodefaultlibs -Wl,-T,riscv64-virt.ld \
-    crt0.s ns16550a.s
+    crt0.s add.c
 {% endhighlight %}
 
 You'll notice we have specified _a lot_ more flags than we did last time, so let's walk through all the ones we didn't cover in the first section. 
