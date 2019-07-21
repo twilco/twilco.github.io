@@ -28,7 +28,7 @@ RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now
 We won't be able to run any code on a RISC-V processor until we have an environment to do it in.  Fortunately, we don't need a physical RISC-V processor to do this - we'll instead be using [qemu](https://www.qemu.org).  To install `qemu`, follow the [instructions for your operating system here](https://www.qemu.org/download).  I'm using MacOS, so for me this was as easy as:
 
 {% highlight bash %}
-# also available via MacPorts - `sudo port install qemu`
+# Also available via MacPorts - `sudo port install qemu`
 brew install qemu
 {% endhighlight %}
 
@@ -51,10 +51,12 @@ tar -xvf riscv64-unknown-elf-gcc-<date>-<platform>.tar.gz
 3. Set the `RISCV_OPENOCD_PATH` and `RISCV_PATH` environment variables so other programs can find our toolchain.  This may look different depending on your OS and shell - I had to add these exports to my `~/.zshenv` file.
 
 {% highlight bash %}
-# I put these two exports directly in my ~/.zshenv file - you may have to do something else.
+# I put these two exports directly in my ~/.zshenv file
+# If you use a different shell or OS you may have to do something else.
 export RISCV_OPENOCD_PATH="$HOME/usys/riscv/openocd-<date>-<version>"
 export RISCV_PATH="$HOME/usys/riscv/riscv64-unknown-elf-gcc-<date>-<version>"
-# Reload .zshenv with our new environment variables.  Restarting your shell will have a similar effect.
+# Reload .zshenv with our new environment variables.  
+# Restarting your shell will have a similar effect.
 source ~/.zshenv
 {% endhighlight %}
 
@@ -62,7 +64,8 @@ source ~/.zshenv
 4. We'll also create a symbolic link into `/usr/local/bin` for this executable so that we can run it without specifying the full path to `~/usys/riscv/riscv64-unknown-elf-gcc-<date>-<version>/bin/riscv64-unknown-elf-gcc` whenever we want to use it.
 
 {% highlight bash %}
-# Symbolically link our gcc executable into /usr/local/bin.  Repeat this process for any other executables you want to quickly access.
+# Symbolically link our gcc executable into /usr/local/bin.  
+# Repeat this process for any other executables you want to quickly access.
 ln -s ~/usys/riscv/riscv64-unknown-elf-gcc-8.2.0-<date>-<version>/bin/riscv64-unknown-elf-gcc /usr/local/bin
 {% endhighlight %}
 
