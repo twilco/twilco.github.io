@@ -15,9 +15,7 @@ description: A post describing how UARTs work, and the beginning of an implement
 
 Welcome to the third post in the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.
 
-In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, set up the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor.  In the [second post of this series]({% post_url 2019-04-27-riscv-from-scratch-2 %}), we reviewed devicetree layouts, linker scripts, basic RISC-V assembly, minimal C runtimes, and more, all in an effort to understand how we get to the `main` function.
-
-In the previous post, we used the [dtc](http://manpages.ubuntu.com/manpages/disco/man1/dtc.1.html) tool to inspect the layout of various hardware components in the `virt` QEMU virtual machine.  At that point, our intention was to determine at what address the RAM lived at within that machine, but you may also recall that `virt` had lots of other interesting components, one of which being an onboard UART.
+In the [previous post]({% post_url 2019-04-27-riscv-from-scratch-2 %}), we used the [dtc](http://manpages.ubuntu.com/manpages/disco/man1/dtc.1.html) tool to inspect the layout of various hardware components in the `virt` QEMU virtual machine.  At that point, our intention was to determine at what address the RAM lived at within that machine, but you may also recall that `virt` had other interesting components, one of which being an onboard UART.
 
 In order to further expand our knowledge of RISC-V assembly, we'll spend the next three posts writing a driver for this UART, deeply exploring important concepts such as ABIs, function prologues and epilogues, and low-level stack manipulation along the way.
 
@@ -27,17 +25,17 @@ So, without further ado, let's begin.
 
 ### What is a UART?
 
-UART stands for "**U**niversal **A**synchronous **R**eceiver-**T**ransmitter", and is a physical hardware device (_not_ a protocol, à la [I2C](https://en.wikipedia.org/wiki/I%C2%B2C) or [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)) used to transmit and receive serial data.  Serial data transmission is the process of sending data sequentially, bit-by-bit.  In contrast, parallel data transmission is the process of sending multiple bits all at once.  This image from the [serial communication Wikipedia page](https://en.wikipedia.org/wiki/Serial_communication) illustrates this concept well:
+UART stands for "**U**niversal **A**synchronous **R**eceiver-**T**ransmitter", and is a physical hardware device (_not_ a protocol, à la [I2C](https://en.wikipedia.org/wiki/I%C2%B2C) or [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)) used to transmit and receive serial data.  Serial data transmission is the process of sending data sequentially, bit-by-bit.  In contrast, parallel data transmission is the process of sending multiple bits all at once.  This image from the [serial communication Wikipedia page](https://en.wikipedia.org/wiki/Serial_communication) illustrates the difference well:
 
 {:refdef: style="text-align: center;"}
 <a href="/assets/img/riscv-from-scratch-pt-3/Parallel_and_Serial_Transmission.gif">![serial and parallel transmission contrasted](/assets/img/riscv-from-scratch-pt-3/Parallel_and_Serial_Transmission.gif)</a>
 {: refdef}
 
-UARTs never specify a rate at which data should be received or transmitted (also called a *clock rate* or *clock signal*), which is what makes them asynchronous rather than synchronous.  Instead, UARTs use start and stop bits around each transmitted packet of data to inform the receiving UART of when to start reading data.
+UARTs never specify a rate at which data should be received or transmitted (also called a *clock rate* or *clock signal*), which is what makes them asynchronous rather than synchronous.  Instead, transmitting UARTs frame each packet of data with start and stop bits, which informs receiving UARTs of when to start and stop reading data.
 
-You may also be familiar with the term "USART", which stands for "**U**niversal **S**ynchronous/**A**synchronous **R**eceiver-**T**ransmitter".  As you might imagine, USARTs are capable of acting asynchronously in the same way UARTs do, but also come with the option of operating synchronously.  When operating synchronously, USARTs forgo the usage of the start and stop bits and instead transmit a clock signal on a separate line that allows transmitting and receiving USARTs to sync up.  Our driver will be for a UART, not a USART, so we won't dive into too much more detail on USARTs, but it's good to know of their existence and some basic differences.
+You may also be familiar with USARTs (**U**niversal **S**ynchronous/**A**synchronous **R**eceiver-**T**ransmitter), which are capable of acting both synchronously and asynchronously.  When operating synchronously, USARTs forgo the usage of the start and stop bits and instead transmit a clock signal on a separate line that allows transmitting and receiving USARTs to sync up.
 
-UARTs and USARTs are all around you, even if you may not realize it.  They are built into nearly every modern microcontroller, our `virt` machine included.  UARTs and USARTs help power the traffic lights you yield to, the refrigerator that cools your food, the satellites that orbit the Earth for years on end...the list goes on and on.
+UARTs and USARTs are all around you, even if you may not realize it.  They are built into nearly every modern microcontroller, our `virt` machine included.  These devices help power the traffic lights you yield to, the refrigerator that cools your food, and the satellites that orbit the Earth for years on end.
 
 ### Setup
 
@@ -105,23 +103,23 @@ grep uart riscv64-virt.dts -B 2 -A 6
         };
 {% endhighlight %}
 
-At the top of our `grep` output, we find a node called `chosen` which uses the onboard UART to display any output it may produce.  According to [this documentation](https://elinux.org/Device_Tree_Usage#chosen_Node), the `chosen` node is special in that it doesn't represent physical hardware.  `chosen` is used to exchange data between firmware and a bare-metal program, such as an operating system.  We won't be using an operating system in this post, instead flashing our UART driver and a `main` function utilizing that driver directly onto the `virt` QEMU machine.
+At the top of our `grep` output, we find a node called `chosen` which uses the onboard UART to display any output it may produce.  According to [this documentation](https://elinux.org/Device_Tree_Usage#chosen_Node), the `chosen` node is special in that it doesn't represent physical hardware.  `chosen` is used to exchange data between firmware and a bare-metal program, such as an operating system.  We won't need to make use of `chosen` in this post, so let's ignore it for now.
 
 Next we find exactly what we're looking for - the `uart` node.  We see that this UART is accessible at memory address `0x10000000`, indicated by the `@10000000` portion of `uart@10000000`.  We also see `interrupts` and `interrupt-parent` properties, indicating to us that this onboard UART is capable of generating interrupts.
 
 For those unfamiliar, an interrupt is a signal to the processor emitted by hardware or software indicating an event needs immediate attention.  For example, a UART may generate an interrupt when:
 
-1. New data has entered the receive buffer 
-2. When the transmitter has finished sending all data in its buffer 
-3. When the UART encounters a transmission error
+* New data has entered the receive buffer 
+* When the transmitter has finished sending all data in its buffer 
+* When the UART encounters a transmission error
 
-These interrupts act as hooks so programmers can write code that responds to these events appropriately.  We won't be using any interrupts in this initial driver, so let's skip these properties for now.
+These interrupts act as hooks so programmers can write code that responds to these events appropriately.  We won't be using any interrupts in this initial driver, so let's skip these properties.
 
 The next property down the list is `clock-frequency = <0x384000>;`.  [Referencing the devicetree specification](https://buildmedia.readthedocs.org/media/pdf/devicetree-specification/latest/devicetree-specification.pdf), `clock-frequency` represents the frequency of the internal clock powering the UART (and likely the rest of the `virt` machine).  The value is hexadecimal `0x384000`, which is `3686400` in decimal format.  This frequency is measured in [hertz](https://en.wikipedia.org/wiki/Hertz), and converting this value to megahertz results in 3.6864 MHz, or 3.6864 million clock ticks a second, which is a [standard crystal oscillator frequency](https://en.wikipedia.org/wiki/Crystal_oscillator_frequencies).
 
-Our next property is `reg = <0x00 0x10000000 0x00 0x100>;`, which determines the memory location of our UART and for how long its memory extends.  The `#address-cells` and `#size-cells` properties in the root node of our `riscv64-virt.dts` file are both set to `<0x02>`, which tells us it takes the addition of two `<u32>` cells to determine the address the `reg` begins at and two `<u32>` cells to determine the length the `reg` extends.  Given the values present in our `reg` field, we know our UART registers begin at memory address `0x00 + 0x10000000 = 0x10000000` and extend `0x00 + 0x100 = 0x100` bytes.  If this still is a little unclear, you can read about these properties in [the devicetree specification](https://buildmedia.readthedocs.org/media/pdf/devicetree-specification/latest/devicetree-specification.pdf).
+Our next property is `reg = <0x00 0x10000000 0x00 0x100>;`, which determines the memory location of our UART and for how long its memory extends.  The `#address-cells` and `#size-cells` properties in the root node of our `riscv64-virt.dts` file are both set to `<0x02>`.  This tells us it takes the addition of two `<u32>` cells to determine the address the `reg` begins at and two `<u32>` cells to determine the length the `reg` extends.  Given the values present in our `reg` field, we know our UART registers begin at memory address `0x00 + 0x10000000 = 0x10000000` and extend `0x00 + 0x100 = 0x100` bytes.  If this still is a little unclear, you can read about these properties in [the devicetree specification](https://buildmedia.readthedocs.org/media/pdf/devicetree-specification/latest/devicetree-specification.pdf).
 
-This brings us to the last property in our `uart` node, `compatible = "ns16550a";`.  This property is particularly important, as it informs us what programming model the UART in question is compatible with.  Operating systems use this property to determine what device drivers it can use for a peripheral.  There are a litany of good resources showing all the details necessary to implement a NS16550A-compatible UART, including [this one](https://www.lammertbies.nl/comm/info/serial-uart.html) which we'll be referencing from here on out.
+This brings us to the last property in our `uart` node, `compatible = "ns16550a";`, which informs us what programming model our UART is compatible with.  Operating systems use this property to determine what device drivers it can use for a peripheral.  There are plentiful resources showing all the details necessary to implement a NS16550A-compatible UART, including [this one](https://www.lammertbies.nl/comm/info/serial-uart.html) which we'll be referencing from here on out.
 
 ### Creating the basic skeleton of our driver
 
@@ -131,7 +129,7 @@ We have all we need to begin writing our driver, so let's begin.  Start by ensur
 cd some/path/to/riscv-from-scratch/work
 {% endhighlight %}
 
-Now create a file called `ns16550a.s`, which will contain the code for our NS16550A UART driver.  In this file, let's start with a basic skeleton containing the functions we want to expose.  For now, we'll limit this driver to simply reading and writing chars, or bytes, without worrying about other available capabilities of the NS16550A, such as interrupts.
+Now create a file called `ns16550a.s`, in which we will start with a basic skeleton of the functions we want to expose for our driver.  For now, we'll limit this driver to simply reading and writing chars, or bytes, without worrying about other available capabilities of NS16550A UARTs, such as interrupts.
 
 {% highlight nasm %}
 .global uart_put_char
@@ -148,7 +146,7 @@ uart_put_char:
 .end
 {% endhighlight %}
 
-Walking through this, we use the `.global` assembler directive to declare `uart_put_char` and `uart_get_char` as symbols we want accessible to other object files that are linked with this one.  All lines that begin with `.`s are assembler directives, meaning they provide information to the assembler rather than acting as executable code.  A detailed description of all the basic GNU assembler directives can be found [here](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html).
+We begin with the `.global` assembler directive to declare `uart_put_char` and `uart_get_char` as symbols accessible to other files linked with this one.  All lines that begin with `.`s are assembler directives, meaning they provide information to the assembler rather than acting as executable code.  A detailed description of all the basic GNU assembler directives can be found [here](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html).
 
 Next, you'll see definitions of each of these symbols, currently only containing `.cfi` assembler directives.  These `.cfi` directives [inform tools](https://stackoverflow.com/a/33732119/2421349), such as the assembler or exception unwinder, about the structure of the frame and how to unwind it. `.cfi_startproc` and `.cfi_endproc` respectively signal the start and end of a function.
 
@@ -195,7 +193,7 @@ _start:
     .end
 {% endhighlight %}
 
-This is an easy fix - we simply need to link a file that defines the `main` symbol.  We would've wanted to do this anyways at some point, as we need some way to exercise our UART driver, and we can easily do so from `main`.  Create a new file called `main.c` in our working directory (`riscv-from-scratch/work`) and define a main function.  We'll also call `uart_put_char` to ensure that `main` is able to find our definition of it in `ns16550a.s`.
+This is an easy fix - we simply need to link a file that defines the `main` symbol.  We would've eventually wanted to do this anyways, as we need some way to exercise our UART driver, and we can easily do so from our `main` entrypoint.  Create a new file called `main.c` in our working directory (`riscv-from-scratch/work`) and define a `main` function.  We'll also call `uart_put_char` to ensure that `main` is able to find our definition of it in `ns16550a.s`.
 
 {% highlight c %}
 int main() {
@@ -211,7 +209,7 @@ riscv64-unknown-elf-gcc -g -ffreestanding -O0 -Wl,--gc-sections \
     crt0.s ns16550a.s main.c
 {% endhighlight %}
 
-And this results in success!  We now have a file in our working directory called `a.out`, which is our executable.  We can also use [`nm`](https://sourceware.org/binutils/docs/binutils/nm.html) to see all of the symbols we've defined so far, including the ones we just created, `main`, `uart_get_char`, and `uart_put_char`.  If you haven't already, make sure you have the `riscv64` version of `nm` installed and available on your path, or linked into your `/usr/local/bin` folder.  [This section]({% post_url 2019-04-27-riscv-from-scratch-2 %}#qemu-and-risc-v-toolchain-setup) in the first post in this series describes in detail how to accomplish this.
+And this results in success!  We can use [`nm`](https://sourceware.org/binutils/docs/binutils/nm.html) on our newly created executable, `a.out`, to see all the symbols it defines, which includes the ones we just created, `main`, `uart_get_char`, and `uart_put_char`.  Note that you may need to revisit [these instructions]({% post_url 2019-03-10-riscv-from-scratch-1 %}#qemu-and-risc-v-toolchain-setup) to ensure `riscv64-unknown-elf-nm` is installed and available on your path or linked into your `/usr/local/bin` directory.
 
 {% highlight bash %}
 riscv64-unknown-elf-nm a.out
@@ -232,7 +230,7 @@ riscv64-unknown-elf-nm a.out
 
 ### Setting the base address
 
-Again referencing [this resource](https://www.lammertbies.nl/comm/info/serial-uart.html), NS16550A UARTs have twelve registers, each accessible from some number byte offset of the base address.  We will be digging into these registers to implement `uart_put_char` and `uart_get_char`, but first we'll need to define a symbol representing this base address for use in our driver.  As we discovered from the decompiled devicetree file above, `riscv64-virt.dts`, the base address is located at `0x00 + 0x10000000 = 0x10000000`, as that is what is in the `reg` property:
+Again referencing [this resource](https://www.lammertbies.nl/comm/info/serial-uart.html), NS16550A UARTs have twelve registers, each accessible from some number byte offset of the base address.  In order to be able to get at these registers from our driver code, we'll first need to define a symbol representing this base address.  As we discovered from the decompiled devicetree file above, `riscv64-virt.dts`, the base address is located at `0x00 + 0x10000000 = 0x10000000`, as that is what is in the `reg` property:
 
 {% highlight bash %}
 uart@10000000 {
