@@ -3,7 +3,7 @@ layout: post
 title:  "RISC-V from scratch 3: Writing a UART driver in assembly (1 / 3)"
 date:   2019-07-08 12:42:53
 categories: riscv-from-scratch
-description: A post describing how UARTs work, and the beginning of an implementation for an NS16550A-compatible UART driver in RISC-V assembly.
+description: A post beginning implementation of a NS16550A UART driver for the QEMU `virt` machine, discussing the basics of UART functionality and doing additional linker script and devicetree layout exploration along the way.
 ---
 
 {: .no_toc}
