@@ -39,11 +39,11 @@ UARTs and USARTs are all around you, even if you may not realize it.  They are b
 
 ### Setup
 
-Before we get down to writing our driver, we'll need a few things set up to ensure we can properly compile and link.  If you've worked through the previous two posts in this series you shouldn't have to do anything here beyond a `cd some/path/to/riscv-from-scratch/work`.
+Before we get down to writing our driver, we'll need a few things set up to ensure we can properly compile and link.  If you've worked through the previous two posts in this series you shouldn't have to do anything here beyond a `cd some/path/to/riscv-from-scratch`.
 
 However, if you missed the previous posts in this series:
 
-1. Ensure you have `riscv-qemu` and the RISC-V toolchain installed.  You can follow [these instructions](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) from the first post to complete this.
+1. Follow [these instructions](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) from the first post to install the GNU RISC-V toolchain and a version of [QEMU](https://www.qemu.org/) with RISC-V emulation capabilities.
 2. Clone or fork the [riscv-from-scratch repo](https://github.com/twilco/riscv-from-scratch):
 {% highlight bash %}
 git clone git@github.com:twilco/riscv-from-scratch.git
@@ -51,11 +51,10 @@ git clone git@github.com:twilco/riscv-from-scratch.git
 # via HTTPS rather than SSH
 # alternatively, if you are a GitHub user, you can fork this repo.
 # https://help.github.com/en/articles/fork-a-repo
-
-cd riscv-from-scratch/work
+cd riscv-from-scratch
 {% endhighlight %}
 {:start="3"}
-3. Check out the branch that contains the code prerequisites, located in `src`, for this post: <br/>
+3. Check out the `pre-uart-driver-skeleton` branch which contains the code prerequisites for this post in the `src` directory: <br/>
 {% highlight bash %}
 git checkout pre-uart-driver-skeleton
 {% endhighlight %}
