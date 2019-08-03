@@ -24,7 +24,7 @@ A review of the devicetree layout of the `virt` QEMU virtual machine, linker scr
 3. [RISC-V from scratch 3: Writing a UART driver in assembly (1 / 3)]({% post_url 2019-07-08-riscv-from-scratch-3 %})<br/>
 The beginning of an implementation of a driver for the `virt` onboard UART, discussing basic UART functionality and doing additional linker script and devicetree layout exploration along the way.
 
-In this post, we will discuss and implement a _function prologue_ for our driver functions `uart_get_char` and `uart_put_char`.  Function prologues have several important duties, such as ensuring variables stored on the stack for one function call don't clobber those of another function call.  We'll walk through a function prologue instruction-by-instruction, diagramming changes to the stack and registers along the way.
+In this post, we will discuss and implement a _function prologue_ for our driver functions `uart_get_char` and `uart_put_char`.  Function prologues have several important duties, such as ensuring variables stored on the stack for one function call don't overwrite those of another function call.  We'll walk through a function prologue instruction-by-instruction, diagramming changes to the stack and registers along the way.
 
 ### Setup
 
@@ -54,7 +54,7 @@ cp -a src/. work
 
 ### A prologue to function prologues (and epilogues)
 
-In the [previous post]({% post_url 2019-07-08-riscv-from-scratch-3 %}), we codified the base memory address of the onboard `virt` UART as the `__uart_base_addr` symbol.  This means we now have a way to access the internal registers of the UART, which are each some-number byte offset off of the base address.  However, before truly beginning the implementation of our UART functions, there is one more important topic we'll need to discuss: *function prologues*.
+In the [previous post]({% post_url 2019-07-08-riscv-from-scratch-3 %}), we codified the base memory address of the onboard `virt` UART as the `__uart_base_addr` symbol.  We can use this symbol to access the internal registers of the UART, as the address of each register is an offset of the base address.  However, before making use of these registers to begin the actual implementation of our UART functions, there's one more important topic we'll need to discuss: *function prologues*.
 
 In most high-level languages, variables that are passed into functions are, when necessary, stored on the stack.  The compiler or interpreter does a lot of work to make this process seamless.  They save you from having to worry about:
 
@@ -115,7 +115,7 @@ int main() {
 
 We're now passing a variable into `uart_put_char` from our C program.  But wait, `uart_put_char` is simply an assembly symbol...how exactly do we get at this parameter?  Assembly doesn't have any concept of functions or parameters.
 
-Answering this question requires us to learn more about ABIs (**A**pplication **B**inary **I**nterface).  ABIs standardize some very important things, such as the length of each data type (is an `int` 8, 16, 32, or 64 bits?), whether the stack grows up or grows down, and the expected [calling convention](https://en.wikipedia.org/wiki/Calling_convention) that should be followed.  Calling conventions determine how functions receive parameters from and return results to their caller.
+Answering this question requires us to learn more about application binary interfaces, or ABIs.  ABIs standardize some very important things, such as the length of each data type (is an `int` 8, 16, 32, or 64 bits?), whether the stack grows up or grows down, and the expected [calling convention](https://en.wikipedia.org/wiki/Calling_convention) that should be followed.  Calling conventions determine how functions receive parameters from and return results to their caller.
 
 RISC-V has [quite a few ABIs](https://wiki.gentoo.org/wiki/RISC-V_ABIs), such as `ilp32` (**i**nteger **l**ong **p**ointer **32**-bit) and `ilp32d` (**i**nteger **l**ong **p**ointer **32**-bit **d**ouble).  In all RISC-V ABIs, function parameters 0-7 are passed in registers `a0` through `a7`, with registers `a0` and `a1` also serving as the place for return values to be passed back to the caller.  Also, in all RISC-V ABIs, the stack grows down from higher addresses to lower addresses, so from `0x88000000` down to `0x80000000` in our `virt` QEMU machine.
 
@@ -169,7 +169,7 @@ As you may recall, the stack pointer points to the next free-for-use byte on the
 
 All the space between the old stack pointer position (`0x87fffff0`) and the new stack pointer position (`0x87ffffd0`) is this functions stack frame.
 
-Onto the next line:
+On to the next line:
 
 {% highlight nasm %}
 # store callers frame pointer inside the newly created stack frame
@@ -215,7 +215,7 @@ mv a5,a0
 
 This instruction moves our first function parameter in `a0` to register `a5`, which is the register for the sixth function parameter.  In the final phase of our function prologue, we'll refer to our input parameter in its new register, `a5`.
 
-You may find this a little odd - why waste an instruction moving the parameter from one argument register to another, when we could just operate on `a0`?
+You may find this a little odd — why waste an instruction moving the parameter from one argument register to another, when we could just operate on `a0`?
 
 It turns out there is a very good reason we do this, and that is scalar extension.  The [RISC-V integer calling convention](https://github.com/riscv/riscv-elf-psabi-doc/blob/master/riscv-elf.md#-integer-calling-convention) requires that scalars narrower than 32-bits or 64-bits, depending on which compiler you use, must be extended:
 
@@ -273,11 +273,11 @@ If you're like me and wondered why we allocate 16 bytes of space when we only ne
 
 ### Conclusion
 
-In this post, we've successfully created a pair of unoptimized function prologues that set us up for success in our upcoming implementation of a function body and epilogue for `uart_put_char` and `uart_get_char`.  We learned about several new RISC-V assembly instructions and explored various concepts such as ABIs, calling conventions, stack spilling, and more.  Hopefully you learned a lot - I certainly did!
+In this post, we've successfully created a pair of unoptimized function prologues that set us up for success in our upcoming implementation of a function body and epilogue for `uart_put_char` and `uart_get_char`.  We learned about several new RISC-V assembly instructions and explored various concepts such as ABIs, calling conventions, stack spilling, and more.  Hopefully you learned a lot — I certainly did!
 
 If you'd like more of this, play around with the [compiler explorer](https://godbolt.org/), which shows you what assembly will be produced by various different compilers.  This tool separately highlights the sections of assembly for the function prologue, body, and epilogue, and allows you to pass any combination of compiler flags.  For a fun experiment, try comparing the difference between the function prologue of a simple C function with no optimization, `-O0`, and higher levels of optimization, such as `-O1`.
 
 When the next post is complete I'll link it here.  If you have any questions, comments, or corrections, feel free to [open up an issue](https://github.com/twilco/twilco.github.io/issues) or leave a comment below via [utterances](https://github.com/utterance/utterances).
 
-Thanks for reading - hope to see you in the next post!
+Thanks for reading — hope to see you in the next post!
 
