@@ -28,8 +28,8 @@ So, without further ado, let's begin.
 UART stands for "**U**niversal **A**synchronous **R**eceiver-**T**ransmitter", and is a physical hardware device (_not_ a protocol, à la [I2C](https://en.wikipedia.org/wiki/I%C2%B2C) or [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)) used to transmit and receive serial data.  Serial data transmission is the process of sending data sequentially, bit-by-bit.  In contrast, parallel data transmission is the process of sending multiple bits all at once.  This image from the [serial communication Wikipedia page](https://en.wikipedia.org/wiki/Serial_communication) illustrates the difference well:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch-pt-3/Parallel_and_Serial_Transmission.gif">![serial and parallel transmission contrasted](/assets/img/riscv-from-scratch-pt-3/Parallel_and_Serial_Transmission.gif)</a>
-{: refdef}
+<a href="/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif">![serial and parallel transmission contrasted](/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif)</a>
+{:refdef}
 
 UARTs never specify a rate at which data should be received or transmitted (also called a *clock rate* or *clock signal*), which is what makes them asynchronous rather than synchronous.  Instead, transmitting UARTs frame each packet of data with start and stop bits, which informs receiving UARTs of when to start and stop reading data.
 
@@ -266,6 +266,7 @@ Today we learned about UARTs and USARTs, the NS16550A specification, interrupts,
 
 In the next post, we'll discuss and implement _function prologues_ for our two driver functions `uart_get_char` and `uart_put_char`.  Function prologues are an important part of making function calls possible in the world of assembly.  We will be walking through a function prologue step-by-step, with diagrams detailing changes to the stack and registers with every instruction.
 
-When the next post is complete I'll link it here.  If you have any questions, comments, or corrections, feel free to [open up an issue](https://github.com/twilco/twilco.github.io/issues) or leave a comment below via [utterances](https://github.com/utterance/utterances).
+This post has been released - [click here to check it out]({% post_url 2019-07-28-riscv-from-scratch-4 %}).  If you have any questions, comments, or corrections, feel free to [open up an issue](https://github.com/twilco/twilco.github.io/issues) or leave a comment below via [utterances](https://github.com/utterance/utterances).
 
-Thanks for reading - hope to see you in the next post!
+Thanks for reading!
+
