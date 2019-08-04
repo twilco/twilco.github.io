@@ -1,6 +1,6 @@
 ### twilco.github.io
 
-Welcome to my blog!
+Welcome!  This repository houses the code for [my blog](https://twilco.github.io).
 
 #### Running locally:
 
@@ -9,6 +9,6 @@ Welcome to my blog!
 3. Use bundler to install packages required for the project (which should include Jekyll) - `bundle`
 4. Use Jekyll to serve the site at [localhost:4000](http://localhost:4000) - `jekyll serve`
 
-Feel free to open an issue or PR for anything you find that needs fixing, or if you enjoyed a specific post and would like to see more like it.  I hope you enjoy!
+Feel free to open an issue or PR for anything you find that needs fixing, or if you enjoyed a specific post and would like to see more like it.
 
 <https://twilco.github.io>
