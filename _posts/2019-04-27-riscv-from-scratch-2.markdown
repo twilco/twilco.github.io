@@ -349,7 +349,7 @@ With this knowledge in mind, let's run through this file line-by-line.  We'll be
 .section .init, "ax"
 {% endhighlight %}
 
-Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), this line tells the assembler that we want the following code to go into a section named `.init` that is `a`llocatable and e`x`ecutable.  The `.init` section is [another commonly followed convention](http://l4u-00.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/node3.html) for running your code within the confines of an operating system.  We're running on bare metal with no OS, so this may not be totally necessary in our case, but it's good practice regardless.
+Referencing the [GNU 'as' manual](https://ftp.gnu.org/old-gnu/Manuals/gas-2.9.1/html_chapter/as_7.html), this line tells the assembler that we want the following code to go into a section named `.init` that is `a`llocatable and e`x`ecutable.  The `.init` section is [another commonly followed convention](https://web.archive.org/web/20190104080351/http://l4u-00.jinr.ru/usoft/WWW/www_debian.org/Documentation/elf/node3.html) for running your code within the confines of an operating system.  We're running on bare metal with no OS, so this may not be totally necessary in our case, but it's good practice regardless.
 
 {% highlight nasm %}
 .global _start
