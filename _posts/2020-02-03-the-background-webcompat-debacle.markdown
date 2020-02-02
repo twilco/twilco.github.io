@@ -1,0 +1,162 @@
+---
+layout: post
+title:  "The `background` debacle — a case study on web compatibility"
+date:   2020-02-03 12:42:53
+categories: posts
+description: A case study on web compatibility featuring the serialization of the `background` CSS shorthand property.  Learn about the CSS standards process and web platform tests (WPTs) along the way.
+---
+
+{: .no_toc}
+#### Table of contents
+1. TOC
+{:toc}
+
+### Introduction
+
+When browsing the [CSS Backgrounds 3 spec](https://www.w3.org/TR/2017/CR-css-backgrounds-3-20171017) a few days ago trying to determine the browser-default `background-color` of the viewport for use in [Kosmonaut](https://github.com/twilco/kosmonaut) (hint: it's system and browser dependent), I stumbled across this note in the changelog:
+
+{:refdef: style="text-align: center;"}
+<a href="/assets/img/background_serialization/bg_serialization_change.png">![Image saying: (Header) Changes since the 9 September 2014 Candidate Recommendation (Bullet list item) Moved background-color (hyperlink) component of final-bg-layer (hyperlink) to the front for serialization because authors seem to expect this even though it doesn't make sense?](/assets/img/background_serialization/bg_serialization_change.png)</a>
+{:refdef}
+
+Clicking into the `final-bg-layer` hyperlink, we discover this revision changed the serialization order of the `background` shorthand property:
+
+{:refdef: style="text-align: center;"}
+<a href="/assets/img/background_serialization/bg_serialization_change.png">![Image showing the spec definition of the background shorthand property.  Highlighted in red is the value for the property: bg-layer#, final-bg-layer.  Further down in the image, the definition of final-bg-layer is also highlighted in red: background-color || bg-image || bg-position](/assets/img/background_serialization/background_shorthand_definition.png)</a>
+{:refdef}
+<div style="margin-top: -20px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">The <span style="font-style: normal"><code>#</code></span> next to <span style="font-style: italic;"><code>bg-layer</code></span> means "0 or more" non-final background layers</div>
+
+This intrigued me.  Why do authors expect the color to be first?  Why does it make less sense for the color to be first?  How was the decision made to make this change to the specification?
+
+Read on for a glimpse into [how the CSS sausage is made](https://en.wiktionary.org/wiki/how_the_sausage_gets_made), from CSS specification to (often differing) browser implementation.
+
+### First, a detour: how CSS comes to be
+
+Having an understanding of how the CSS standards process works will help in understanding the `background` shorthand awkwardness, so let's go over it.
+
+In summary: CSS syntax is standardized by the [CSSWG (CSS working group)](https://www.w3.org/Style/CSS/members), which is comprised of representatives from browser vendors, universities, various companies, and some independent experts.  New CSS syntax passes through six stages:
+
+<ol class="bold slightly-spaced-list">
+    <li>
+      Editor's draft (ED) 
+      <br />
+      <span class="non-bold">
+        New syntax goes from idea to "paper" in this phase, during which it is fleshed out internally by the CSSWG.  You can find WIP editor drafts here: <a href="https://drafts.csswg.org/">https://drafts.csswg.org/</a>
+      </span>
+    </li>
+    <li>
+      Working draft (WD) 
+      <br />
+      <span class="non-bold">
+        If an ED is accepted internally by the CSSWG, it moves onto this phase for review by the community (technical organizations, W3C members, the public).  Changes to the specification continue to be made during this phase.  You can find the current working drafts (and more) here: <a href="https://www.w3.org/Style/CSS/current-work.en.html">https://www.w3.org/Style/CSS/current-work.en.html</a>
+      </span>
+    </li>
+    <li>
+      Last call working draft (LCWD) 
+      <br />
+      <span class="non-bold">
+        The LCWD provides a hard deadline for any final changes to a WD before it moves on to the CR phase.
+      </span>
+    </li>
+    <li>
+      Candidate recommendation (CR)
+      <br />
+      <span class="non-bold">
+        Browsers typically implement the specification in this phase in order to gain <a href="https://www.w3.org/2018/Process-20180201/#implementation-experience">implementation experience</a>, thus determining the worthiness of this specification for the final phases.  We see this phase mentioned in the above screenshot, meaning the change to <code>background</code> serialization we will dive into shortly was an revision to the original CR. 
+      </span>
+    </li>
+    <li>
+      Proposed recommendation (PR)
+      <br />
+      <span class="non-bold">
+        The <a href="https://www.w3.org/2005/10/Process-20051014/organization#AC">W3C Advisory Committee</a> decides if the specification should move to the final phase.
+      </span>
+    </li>
+    <li>
+      Recommendation (REC)
+      <br />
+      <span class="non-bold">
+        The specification is considered complete and ready to implement.  Only small maintenance work happens at this phase.  In reality, most browsers implement specifications at the CR phase, so specifications that make here are often "dead", laden with errors discovered in implementation that are too difficult to fix in these later phases.
+      </span>
+    </li>
+</ol>
+
+The above is largely a summary of [this article](https://css-tricks.com/css-standards-process/), so head there if you're looking for more detail.
+
+### Back to business
+
+Let's get back to our original goal: digging into [this revision](https://www.w3.org/TR/2017/CR-css-backgrounds-3-20171017/#changes-2014-09) in the CSS Backgrounds 3 specification:
+
+> Moved <‘background-color’> component of <final-bg-layer> to the front for serialization because some authors seem to expect this even though it makes less sense? 
+
+In the context of CSS specifications, "authors" are the authors of webpages — web developers.  You may also see the terminology "implementor" — these are the people implementing the specification, so browser (also known as _user agent_) developers.
+
+Serialization is the process of converting an author-given value into something with semantic value to a user agent[^1].  That's why the order is important — if browsers expect the first value in a list of values to be a <code>background-color</code> but instead get something else, such as a <code>bg-image</code>, the value for the property won't get serialized as the author might expect (if at all).
+
+### Why was this change made?  
+
+Development of these specifications [happens on Github](https://github.com/w3c/csswg-drafts), so let's look at [the commit that introduced this revision](https://github.com/w3c/csswg-drafts/commit/02fe11230e02279b495e4c5931be6ed5bab61c5c):
+
+{:refdef: style="text-align: center;"}
+<a href="/assets/img/background_serialization/background_serialization_commit.png">![Image of commit on GitHub making the revision to the background serialization spec.  Commit message is: Move bg-color to beginning of final layer per (hyperlink to meeting notes) even though it is silly (as leaverou mentions in the minutes)](/assets/img/background_serialization/background_serialization_commit.png)</a>
+{:refdef}
+
+Clicking on the [pictured hyperlink](https://lists.w3.org/Archives/Public/www-style/2015Jan/0406.html) takes us to the meeting notes — search for "background serialization" to find the bit we're interested in.
+
+Feel free to read the full conversation yourself — for the sake of brevity, here is a summary of points:
+
+<ol class="bold slightly-spaced-list">
+    <li>
+      <span class="non-bold">
+        The <a href="https://www.w3.org/TR/CSS21/colors.html#background-properties">CSS 2.1 background spec</a> placed the <code>background-color</code> first in the value list.
+      </span>
+    </li>
+    <li>
+      <span class="non-bold">
+        For CSS3, the <code>background-color</code> was moved to the end of the final background layer because it is painted underneath all the other components of this layer (e.g. the background image and all its modifiers).
+      </span>
+    </li>
+    <li>
+      <span class="non-bold">
+        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=743392">Authors complained</a> about this change in serialization, as tutorials had codified CSS 2.1 serialization order.
+      </span>
+    </li>
+</ol>
+
+### But wait, there's more!
+
+This 2015 spec revision was not the end of the confusion surrounding `background` serialization — the topic [came back up again](https://github.com/w3c/csswg-drafts/issues/418) in 2016:
+
+{:refdef: style="text-align: center;"}
+<a href="/assets/img/background_serialization/cssom_define_ser.png">![GitHub issue with the title: cssom define serialization for background shorthand](/assets/img/background_serialization/cssom_define_ser.png)</a>
+{:refdef}
+
+{:refdef: style="text-align: center;"}
+<a href="/assets/img/background_serialization/serialization_questions.png">![Part of the text of the GitHub issue described above.  Text is: Firefox seems to only serialize when all set longhands are of the same length(and when it does, it serializes to all default values).  Chrome always serializes, and just prints out whatever was set.  Paragraph break.  This should probably be specced.  Important questions to answer.  Bullet list item: Should we truncate everything to the length of the background-image longhand?  Bullet list item: For underspecified longhands, should we cycle through them to make them the same length as background-image?  Bullet list item: Should we be explicit (like Firefox) or implicit (like Chrome)?  Bullet list item: Is serialization (of a shorthand) allowed to fail if parsing hasn't?](/assets/img/background_serialization/serialization_questions.png)</a>
+{:refdef}
+
+And roughly two years after this, [it was noted](https://github.com/w3c/csswg-drafts/issues/418#issuecomment-380951618) that this inconsistency across browsers still existed.
+
+### Web platform tests: the ultimate equalizer
+
+There is a largely happy ending to a story, and it comes thanks to something called a _web platform test_ (WPT).  Quoting the [WPT project readme](https://github.com/web-platform-tests/wpt#the-web-platform-tests-project):
+
+> The web-platform-tests project is a cross-browser test suite for the Web-platform stack. Writing tests in a way that allows them to be run in all browsers gives browser projects confidence that they are shipping software that is compatible with other implementations, and that later implementations will be compatible with their implementations.
+
+Most browsers automatically sync these tests to their own repositories, and use them to help prevent any set of changes from accidentally regressing web-compatibility.
+
+As you might now be guessing, [a WPT was created](https://github.com/web-platform-tests/wpt/pull/10462/files) to account for all the various ways the `background` shorthand property may be ordered in the wild.  With this test in place, browsers can more easily align on the acceptance of various different `background` serializations, or at the very least make a lack of compatibility obvious in test failure.
+
+### Summary
+
+In summary, web compatibility is hard.  Thank your local browser developer when you next get a chance :)
+
+If you have any questions, comments, or corrections, feel free to [open up an issue](https://github.com/twilco/twilco.github.io/issues) or leave a comment below via [utterances](https://github.com/utterance/utterances).
+
+<br />
+
+---
+
+<br />
+
+[^1]: Reading various other specifications, serialization also seems to refer to the opposite process of converting from a semantic component, such as a <code>color</code> or <code>shape</code>, to a string.  See <a href="https://drafts.csswg.org/cssom/#serializing-css-values">here</a> for a comprehensive list of CSS "serializations" and <a href="https://drafts.csswg.org/cssom/#serializing-css-values-examples">here</a> for some specific serialization examples.  Perhaps my understanding of serialization is flawed.

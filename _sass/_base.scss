@@ -43,6 +43,10 @@ ol.bold > li > span.non-bold {
   font-weight: 300;
 }
 
+.slightly-spaced-list li {
+  margin-bottom: 10px;
+}
+
 /**
  * Begin factory-default Jekyll stuff
  */
