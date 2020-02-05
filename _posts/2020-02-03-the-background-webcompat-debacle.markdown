@@ -100,6 +100,36 @@ Serialization is the process of converting from a data structure (e.g. Rust stru
 
 Whenever you ask the browser for state on styles, such as through the [HTMLElement.style](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/style) or [Window.getComputedStyle](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle) APIs, the value it returns to you is the result of the serialization of its data structures to a string.
 
+It's important to note that how you input styles for an element may not be how they are later serialized back to you.  In fact, this point is the crux of the issue we're exploring — the serialization of the `background` shorthand property differed from author's expectations based on previous browser behavior and the spec.
+
+For example, given this specified style:
+
+{% highlight css %}
+#target {
+  background: url("https://bit.ly/") 1px 2px / 3px 4px
+                space round local padding-box content-box,
+              rgb(5, 6, 7) url("https://bit.ly/") 1px 2px / 3px 4px
+                space round local padding-box content-box;
+}
+{% endhighlight%}
+
+You might get back this (or something completely different, depending on your browser) post-serialization:
+
+{% highlight javascript %}
+const target = document.getElementById('target')
+console.log(target.style['background'])
+
+// Logs the following.
+// Note the difference in order vs. what was specified above.
+
+// url("https://bit.ly/") space round local
+//  1px 2px / 3px 4px padding-box content-box,
+// rgb(5, 6, 7) url("https://bit.ly/") space round local
+//  1px 2px / 3px 4px padding-box content-box
+{% endhighlight %}
+
+The order in which properties are serialized could be very important.  For example, perhaps you are writing a JavaScript framework that parses the serialized styles of HTML elements in order to compute some new ones.  Different serializations in different browsers makes this much, much more difficult to do.
+
 ### So why was this change made?  
 
 Development of these specifications [happens on Github](https://github.com/w3c/csswg-drafts), so let's look at [the commit that introduced this revision](https://github.com/w3c/csswg-drafts/commit/02fe11230e02279b495e4c5931be6ed5bab61c5c):
@@ -125,7 +155,12 @@ Feel free to read the full conversation yourself — for the sake of brevity, he
     </li>
     <li>
       <span class="non-bold">
-        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=743392">Authors complained</a> about this change in serialization, as tutorials had codified the CSS 2.1 serialization order.
+        <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=743392">Authors complained</a> about this change in serialization, as tutorials had codified the CSS 2.1 serialization order (<code>&lt;background-color&gt;</code> first).
+      </span>
+    </li>
+    <li>
+      <span class="non-bold">
+        It is discovered Chrome's <code>background</code> shorthand serialization is "100% broken".  While not made as explicit in the conversation, WebKit (Safari's browser engine) and Gecko (Firefox's browser engine) likely had, and may still have problems relative to the spec — more on that later.
       </span>
     </li>
 </ol>
