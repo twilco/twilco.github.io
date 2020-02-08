@@ -169,7 +169,7 @@ Feel free to read the full conversation yourself — for the sake of brevity, he
 
 ### But wait, there's more!
 
-This 2015 spec revision was not the end of the confusion surrounding `background` serialization — the topic [came back up again](https://github.com/w3c/csswg-drafts/issues/418) as an issue in the CSSWG repository in 2016:
+The 2016 spec revision was not the only confusion surrounding `background` serialization — the topic [was also raised as an issue in the CSSWG repository](https://github.com/w3c/csswg-drafts/issues/418):
 
 {:refdef: style="text-align: center;"}
 <a href="/assets/img/background_serialization/cssom_define_ser.png">![GitHub issue with the title: cssom define serialization for background shorthand](/assets/img/background_serialization/cssom_define_ser.png)</a>
