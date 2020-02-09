@@ -4,7 +4,6 @@ title:  "The `background` debacle — a case study on web compatibility"
 date:   2020-02-03 12:42:53
 categories: posts
 description: A case study on web compatibility featuring the serialization of the `background` CSS shorthand property.  Learn about the CSS standards process and web platform tests (WPTs) along the way.
-published: false
 ---
 
 {: .no_toc}
