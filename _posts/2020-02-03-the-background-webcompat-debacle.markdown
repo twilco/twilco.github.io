@@ -93,7 +93,7 @@ Before we continue, allow me to clarify some terms you might not be familiar wit
 
 In the context of CSS specifications, "authors" are the authors of webpages — web developers.  You may also see the terminology "implementor" — these are the people implementing the specification, so browser (which is also known as a _user agent_) developers.
 
-Serialization is the process of converting from a data structure (e.g. Rust struct, C++ class) representation of a CSS object to a string representation of that CSS object.  To see this more concretely, check out [this portion of the CSSOM (CSS Object Model) spec](https://drafts.csswg.org/cssom/#serializing-css-values) that details step-by-step how to serialize various CSS values and components.  Here's an excerpt showing serialization of a ratio value:
+Serialization is the process of converting from a data structure (e.g. Rust struct, C++ class) representation of a CSS object to a string representation of that CSS object.  To see this more concretely, check out [this portion of the CSSOM (CSS Object Model) spec](https://drafts.csswg.org/cssom/#serializing-css-values) that details how to serialize various CSS values and components.  Here's an excerpt showing serialization of a ratio value:
 
 {:refdef: style="text-align: center;"}
 <a href="/assets/img/background_serialization/serialize_ratio_component.png">![Serializing ratio: The numerator serialized as per number, followed by the literal string " / ", followed by the denominator serialized as per number](/assets/img/background_serialization/serialize_ratio_component.png)</a>
@@ -168,7 +168,7 @@ Feel free to read the full conversation yourself — for the sake of brevity, he
 
 ### But wait, there's more!
 
-The 2016 spec revision was not the only confusion surrounding `background` serialization — the topic [was also raised as an issue in the CSSWG repository](https://github.com/w3c/csswg-drafts/issues/418):
+The 2015/2016 spec revision was not the only confusion surrounding `background` serialization — the topic [was also raised as an issue in the CSSWG repository](https://github.com/w3c/csswg-drafts/issues/418):
 
 {:refdef: style="text-align: center;"}
 <a href="/assets/img/background_serialization/cssom_define_ser.png">![GitHub issue with the title: cssom define serialization for background shorthand](/assets/img/background_serialization/cssom_define_ser.png)</a>
@@ -203,4 +203,4 @@ If you have any questions, comments, or corrections, feel free to [open up an is
 ---
 <div class="paragraph-sized-spacer"></div>
 
-For some extra credit reading, [check out this discussion](https://github.com/w3c/csswg-drafts/issues/1033) concerning the serialization of computed CSS styles returned from [Window.getComputedStyle()](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).  There's some interesting back-and-forth on the validity of serializing the object to an empty string vs. something "meaningful", and the technical difficulties that would come with that.
+For some extra credit reading, [check out this discussion](https://github.com/w3c/csswg-drafts/issues/1033) concerning the serialization of computed CSS styles returned from [Window.getComputedStyle](https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle).  There's some interesting back-and-forth on the validity of serializing the object to an empty string vs. something "meaningful", and the technical difficulties that would come with that.
