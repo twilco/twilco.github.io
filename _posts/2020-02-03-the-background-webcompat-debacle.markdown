@@ -28,9 +28,9 @@ Clicking into the <code>&lt;final-bg-layer&gt;</code> hyperlink, we discover thi
 {:refdef}
 <div style="margin-top: -20px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">The <span style="font-style: normal"><code>#</code></span> next to <span style="font-style: italic;"><code>&lt;bg-layer&gt;</code></span> means "0 or more" non-final background layers</div>
 
-This intrigued me.  Why do authors expect the color to be first, and why does it make less sense for the color to be first?  What does this change mean in practicality?  How was this decision to change the specification made?
+This intrigued me.  Why do authors expect the color to be first, and why does it make less sense for the color to be first?  What does this change mean in practice?  How was this decision to change the specification made?
 
-Read on for a glimpse into [how the CSS sausage is made](https://en.wiktionary.org/wiki/how_the_sausage_gets_made), from CSS specification to (sometimes differing) browser implementation.  You can expect to learn about the CSS standards process, CSS serialization, web platform tests, and more, hopefully gaining some appreciation for the difficult task that web compatibility is.
+Read on for a glimpse into [how the CSS sausage is made](https://en.wiktionary.org/wiki/how_the_sausage_gets_made), from CSS specification to (sometimes differing) browser implementation.  You can expect to learn about the CSS standards process, CSS serialization, web platform tests, and more, hopefully gaining some appreciation for the difficult task that is web compatibility.
 
 ### First, a detour: how CSS comes to be
 
@@ -64,7 +64,7 @@ In summary: CSS syntax is standardized by the [CSSWG (CSS working group)](https:
       Candidate recommendation (CR)
       <br />
       <span class="non-bold">
-        Browsers typically implement the specification in this phase in order to gain <a href="https://www.w3.org/2018/Process-20180201/#implementation-experience">implementation experience</a>, thus determining the worthiness of this specification for the final phases.  We see this phase mentioned in the above screenshot, meaning the change to <code>background</code> serialization we will dive into shortly was an revision to the original CR. 
+        Browsers typically implement the specification in this phase in order to gain <a href="https://www.w3.org/2018/Process-20180201/#implementation-experience">implementation experience</a>, thus determining the worthiness of this specification for the final phases.  We see this phase mentioned in the above screenshot, meaning the change to <code>background</code> serialization we will dive into shortly was a revision to the original CR.
       </span>
     </li>
     <li>
@@ -93,7 +93,7 @@ Before we continue, allow me to clarify some terms you might not be familiar wit
 
 In the context of CSS specifications, "authors" are the authors of webpages — web developers.  You may also see the terminology "implementor" — these are the people implementing the specification, so browser (which is also known as a _user agent_) developers.
 
-Serialization is the process of converting from a data structure (e.g. Rust struct, C++ class) representation of a CSS object to a string representation of that CSS object.  To see this more concretely, check out [this portion of the CSSOM (CSS Object Model) spec](https://drafts.csswg.org/cssom/#serializing-css-values) that details how to serialize various CSS values and components.  Here's an excerpt showing serialization of a ratio value:
+Serialization is the process of converting from a data structure (e.g. Rust struct, C++ class) representation of a CSS object to a string representation of that CSS object.  To see this more concretely, check out [this portion of the CSSOM (CSS Object Model) spec](https://drafts.csswg.org/cssom/#serializing-css-values) that details how to serialize various CSS values and components.  Here's an excerpt showing the serialization of a <code>&lt;ratio&gt;</code> value:
 
 {:refdef: style="text-align: center;"}
 <a href="/assets/img/background_serialization/serialize_ratio_component.png">![Serializing ratio: The numerator serialized as per number, followed by the literal string " / ", followed by the denominator serialized as per number](/assets/img/background_serialization/serialize_ratio_component.png)</a>
@@ -186,7 +186,7 @@ There is a somewhat happy ending to this story, and it comes thanks to something
 
 > The web-platform-tests project is a cross-browser test suite for the Web-platform stack. Writing tests in a way that allows them to be run in all browsers gives browser projects confidence that they are shipping software that is compatible with other implementations, and that later implementations will be compatible with their implementations.
 
-Most browsers automatically sync these tests to their own repositories, and use them to help prevent any set of changes from accidentally regressing web-compatibility.  At the time of this post, there are a whopping 41,492 WPTs, each of which made up of one or more subtests, for a grand total of _1,711,211 subtests_.  That's a lot!
+Most browsers automatically sync these tests to their own repositories and use them to help prevent any set of changes from accidentally regressing web-compatibility.  At the time of this post, there are a whopping 41,492 WPTs, each of which made up of one or more subtests, for a grand total of _1,711,211 subtests_.  That's a lot!
 
 The `web-platform-tests` group also maintains a website called [wpt.fyi](https://wpt.fyi/results/?label=experimental&label=master&aligned), which provides a dashboard to view the results of any and all WPTs for the included browsers.
 
