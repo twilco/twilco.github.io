@@ -21,7 +21,7 @@ In this first post, we'll talk a little bit about what RISC-V is and why it's im
 
 RISC-V is an open-source, free-to-use ISA that began as a project at UC-Berkeley in 2010.  The free-to-use aspect has been instrumental in its success and is quite a stark contrast to many other architectures.  Take ARM for example - in order to create an ARM-compatible processor, you must pay an upfront fee of [$1M - $10M as well as a 0.5% - 2% royalty fee per-chip](https://www.anandtech.com/show/7112/the-arm-diaries-part-1-how-arms-business-model-works/2).  This free and open model makes RISC-V an attractive option to many groups of people - hardware startups who can't foot the bill to create an ARM or other licensing-required processor, academic institutions, and (obviously) the open-source community.
 
-RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now-taken down website](https://abopen.com/news/rattled-arm-launches-anti-risc-v-marketing-campaign/) that attempted (rather unsuccessfully) to highlight supposed benefits of ARM over RISC-V.  RISC-V is backed by [a ton of major companies](https://riscv.org/members-at-a-glance/), including Google, Nvidia, and Western Digital.
+RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now-taken down website](https://abopen.com/news/rattled-arm-launches-anti-risc-v-marketing-campaign/) that attempted (rather unsuccessfully) to highlight supposed benefits of ARM over RISC-V.  RISC-V is backed by [a ton of major companies](https://riscv.org/membership/members/), including Google, Nvidia, and Western Digital.
 
 ### QEMU and RISC-V toolchain setup
 

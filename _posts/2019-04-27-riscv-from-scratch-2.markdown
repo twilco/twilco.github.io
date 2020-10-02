@@ -250,7 +250,7 @@ Well, since the default `crt0` isn't doing what we need it to, we have one obvio
 
 Fortunately for us, we are far from the first to ask this question, and a good solution exists.  GNU's linking program, `ld`, [provides a way for us to define a symbol](https://web.archive.org/web/20190525173911/https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html) which would be accessible from our `crt0`.  We can use this, among other functions provided by `ld`, to create a `__stack_top` symbol definition that is reasonably flexible across multiple different CPUs.
 
-Rather than writing our own linker file from scratch, it is going to make more sense to take the default linker script that `ld` uses and modify it slightly to expose any additional symbols we want. What is a linker script, you might be wondering?  [This snippet summarizes it well:](http://www.scoberlin.de/content/media/http/informatik/gcc_docs/ld_3.html)
+Rather than writing our own linker file from scratch, it is going to make more sense to take the default linker script that `ld` uses and modify it slightly to expose any additional symbols we want. What is a linker script, you might be wondering?  This snippet from a [now dead link](https://scgberlin.de/content/media/http/informatik/gcc_docs/ld_3.html) summarizes it well:
 
 > The main purpose of the linker script is to describe how the sections in the input files should be mapped into the output file, and to control the memory layout of the output file.
 
