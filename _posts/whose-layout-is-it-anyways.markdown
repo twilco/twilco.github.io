@@ -1,7 +1,6 @@
 ---
 layout: post
 title:  "Whose layout is it anyways — where the margins are made up and the spec doesn't matter"
-date:   2020-12-18 12:42:53
 categories: posts
 description: TODO
 ---
