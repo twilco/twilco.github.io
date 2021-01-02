@@ -17,7 +17,7 @@ the future.
 
 ### Kosmonaut in 2020
 
-One year ago today, I was finishing the first implementation of [block layout](https://github.com/twilco/kosmonaut/commit/f3041f0b7e986b7a0be26b34870489cfaeb3e830) and [display-list generation](https://github.com/twilco/kosmonaut/commit/fedf68029e4ad9ea8bf4b96611b8738a347402f2).  In terms of LoC, Kosmonaut hasn't grown much — from 7.5k LoC then to
+One year ago today, I was finishing the first implementation of [block layout](https://github.com/twilco/kosmonaut/commit/f3041f0b7e986b7a0be26b34870489cfaeb3e830) and [display-list generation](https://github.com/twilco/kosmonaut/commit/fedf68029e4ad9ea8bf4b96611b8738a347402f2).  In terms of LoC, Kosmonaut hasn't grown much — from 7.5k then to
 20k now.  However, there are some pretty neat improvements wrapped up in that 12.5k LoC increase:
 
 * Layout-tree dump[^1] snapshot based testing
@@ -82,7 +82,7 @@ others I didn't push across the finish line.  Here are some highlights:
 
 * Various bug fixes and improvements to WebKit's CSS variables implementation.  I have a blog post in the works describing these in more detail, so stay tuned.
 * Fixed a bug that caused `::selection` pseudoelement styles to not be applied to elements with direct anonymous parents, such as text nodes. [[commit]](9d06f52c2c04b24605af1bb19eed43ad03a6d9c4)
-* Per spec, ignore order when parsing `<inset>` and `<color>` values for the `box-shadow` property.  [[commit]](https://github.com/WebKit/WebKit/commit/b1876da3f1ce3bed2a8c779e5716927ce9d85438) 
+* Per spec, ignore order when parsing `<inset>` and `<color>` values for the `box-shadow` property.  This makes values that should've been valid for `box-shadow` actually work.  [[commit]](https://github.com/WebKit/WebKit/commit/b1876da3f1ce3bed2a8c779e5716927ce9d85438) 
 
 In the second half of the year I really felt like I was getting into a groove in working on WebKit, so I'm excited to get
 back to it.
@@ -99,7 +99,7 @@ back to it.
 
 After this list, I'm not really sure what will come next for Kosmonaut.  I think it would be a fun minigame to start tackling the [Acid2 test](https://en.wikipedia.org/wiki/Acid2) and/or [some web platform tests](https://github.com/web-platform-tests/wpt).
 
-I've taken a break from WebKit recently to push Kosmonaut's layout rewrite across the finish line, but want to get back to it soon.  I have been pondering about an experiment I'd like to try regarding my work in WebKit, so stay tuned for information on that — I'll be posting about it here.
+I've taken a break from WebKit recently to push Kosmonaut's layout rewrite across the finish line, but I want to get back to it soon.  I have been pondering about an experiment I'd like to try regarding my work in WebKit, so stay tuned for information on that — I'll be posting about it here.
 
 ---
 
