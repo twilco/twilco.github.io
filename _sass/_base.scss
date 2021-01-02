@@ -47,6 +47,14 @@ ol.bold > li > span.non-bold {
   margin-bottom: 10px;
 }
 
+.footnotelist {
+  margin-top: 15px;
+}
+
+.footnotelist > li {
+  margin-top: 15px;
+}
+
 /** Should have the same margin-bottom size as <p> elements do. */
 div.paragraph-sized-spacer {
   margin-bottom: 15px;
