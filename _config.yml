@@ -11,7 +11,6 @@ plugins:
   - jekyll-seo-tag
   - jekyll-feed
   - jekyll-sitemap
-  - jekyll/footnotes
 
 # Build settings
 markdown: kramdown

@@ -20,8 +20,8 @@ the future.
 One year ago today, I was finishing the first implementation of [block layout](https://github.com/twilco/kosmonaut/commit/f3041f0b7e986b7a0be26b34870489cfaeb3e830) and [display-list generation](https://github.com/twilco/kosmonaut/commit/fedf68029e4ad9ea8bf4b96611b8738a347402f2).  In terms of LoC, Kosmonaut hasn't grown much — from 7.5k LoC then to
 20k now.  However, there are some pretty neat improvements wrapped up in that 12.5k LoC increase:
 
-* Layout-tree dump{% fn %} snapshot based testing
-* Partial support{% fn %} for [abstract box layout](https://drafts.csswg.org/css-writing-modes-4/#abstract-layout) with the `writing-mode` and `direction` properties
+* Layout-tree dump[^1] snapshot based testing
+* Partial support[^2] for [abstract box layout](https://drafts.csswg.org/css-writing-modes-4/#abstract-layout) with the `writing-mode` and `direction` properties
 * Support for arbitrary scale factors, e.g. for HiDPI screens
 * OpenGL-based box painting and text rendering (though text rendering is not yet hooked into layout)
 
@@ -103,12 +103,7 @@ I've taken a break from WebKit recently to push Kosmonaut's layout rewrite acros
 
 ---
 
-{% footnotes %}
-   {% fnbody %}
-<a href="https://github.com/twilco/kosmonaut/blob/82cf7ef53e67e0c33ea8812e486fe8d867a82da9/tests/layout/directional/snapshots/lib__layout__directional__ltr_vertical_lr_block_boxes_top_left_right_mbp_applied_physically.snap">Here's what a layout dump looks like. </a>
-   {% endfnbody %}
-   {% fnbody %}
-The specifics of what "partial support" means are documented <a href="https://github.com/twilco/kosmonaut/blob/e50b640e467a630776a3a3c910839176da98f868/README.md#f1">here</a>.
-   {% endfnbody %}
-{% endfootnotes %}
+[^1]: <a href="https://github.com/twilco/kosmonaut/blob/82cf7ef53e67e0c33ea8812e486fe8d867a82da9/tests/layout/directional/snapshots/lib__layout__directional__ltr_vertical_lr_block_boxes_top_left_right_mbp_applied_physically.snap">Here's what a layout dump looks like. </a>
+
+[^2]: The specifics of what "partial support" means is documented <a href="https://github.com/twilco/kosmonaut/blob/e50b640e467a630776a3a3c910839176da98f868/README.md#f1">here</a>.
 
