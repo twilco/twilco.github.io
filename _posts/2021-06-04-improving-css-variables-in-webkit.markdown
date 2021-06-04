@@ -10,7 +10,7 @@ find. While I did a fair amount of this work in my personal time, my employer, [
 kind enough to give me a few days off to work on this too.
 
 I posted a write-up on this work for my company blog. This post is a brief and approachable view into the world of
-browser development — you can see what the code looks like in the form of diffs, how testing works (also in the diffs),
+browser development — you can see what the code looks like in the form of diffs, how testing works,
 and the code review process. Check it out!
 
 [https://engineering.widen.com/blog/Improving-CSS-Variables-in-WebKit](https://engineering.widen.com/blog/Improving-CSS-Variables-in-WebKit)
