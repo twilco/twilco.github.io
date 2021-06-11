@@ -6,16 +6,16 @@ description: "A quick retrospective on the browser-related things I worked on in
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
 <hr style="margin-bottom: 15px;" />
 
-I spent much of 2020 working on web browsers (mainly [Kosmonaut](https://github.com/twilco/kosmonaut) and WebKit).  Here's a little write-up about how that was, and what I have planned for
+I spent much of 2020 working on web browsers (mainly [Kosmonaut](https://github.com/twilco/kosmonaut) and [WebKit](https://github.com/WebKit/WebKit)).  Here's a little write-up about how that was, and what I have planned for
 the future.
 
-### Kosmonaut in 2020
+## Kosmonaut in 2020
 
 One year ago today, I was finishing the first implementation of [block layout](https://github.com/twilco/kosmonaut/commit/f3041f0b7e986b7a0be26b34870489cfaeb3e830) and [display-list generation](https://github.com/twilco/kosmonaut/commit/fedf68029e4ad9ea8bf4b96611b8738a347402f2).  In terms of LoC, Kosmonaut hasn't grown much — from 7.5k then to
 20k now.  However, there are some pretty neat improvements wrapped up in that 12.5k LoC increase:
@@ -74,7 +74,7 @@ However, this proved to to be awkward for a number of reasons, and I scrapped th
 that technically allows these rules to be broken.  I would like to revisit this someday, as allowing users to encode
 rules via the type system (and making it ergonomic to do so) is something Rust is good at.
 
-### WebKit in 2020
+## WebKit in 2020
 
 Kosmonaut was not the only browser I worked on in 2020 — this year also saw the beginning of my contributions to WebKit.
 I landed [13 patches](https://github.com/WebKit/WebKit/search?q=author%3Atwilco&type=commits), and worked on quite a few
@@ -87,7 +87,7 @@ others I didn't push across the finish line.  Here are some highlights:
 In the second half of the year I really felt like I was getting into a groove in working on WebKit, so I'm excited to get
 back to it.
 
-### My plans for 2021
+## My plans for 2021
 
 2021 has arrived!  Here are some things I'd like to complete in Kosmonaut soon:
 

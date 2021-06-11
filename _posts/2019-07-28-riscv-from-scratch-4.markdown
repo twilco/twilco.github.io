@@ -7,11 +7,11 @@ description: A post continuing implementation of an NS16550A UART driver in RISC
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 Welcome to the fourth post in the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.
 
@@ -26,7 +26,7 @@ The beginning of an implementation of a driver for the `virt` onboard UART, disc
 
 In this post, we will discuss and implement a _function prologue_ for our driver functions `uart_get_char` and `uart_put_char`.  Function prologues have several important duties, such as ensuring variables stored on the stack for one function call don't overwrite those of another function call.  We'll walk through a function prologue instruction-by-instruction, diagramming changes to the stack and registers along the way.
 
-### Setup
+## Setup
 
 If you have worked through all the previous posts in this series, you can `cd` to your `riscv-from-scratch` directory and skip this section.  If you're new to this series and would like to follow along, keep reading!
 
@@ -52,7 +52,7 @@ git checkout pre-function-prologue-impl
 cp -a src/. work
 {% endhighlight %}
 
-### A prologue to function prologues (and epilogues)
+## A prologue to function prologues (and epilogues)
 
 In the [previous post]({% post_url 2019-07-08-riscv-from-scratch-3 %}), we codified the base memory address of the onboard `virt` UART as the `__uart_base_addr` symbol.  We can use this symbol to access the internal registers of the UART, as the address of each register is an offset of the base address.  However, before making use of these registers to begin the actual implementation of our UART functions, there's one more important topic we'll need to discuss: *function prologues*.
 
@@ -102,7 +102,7 @@ You can think of a _stack frame_ as a dedicated scratch space on the stack for v
 
 The function prologue is also responsible for saving the _caller's_ frame pointer.  This is important because when we return control to the caller in the function epilogue we must also restore their frame pointer.  More on this later.
 
-### The what and why of ABIs
+## The what and why of ABIs
 
 Before implementing our function prologue, we need to alter our `main.c` file to pass a byte into `uart_put_char` so we have a parameter to work with.
 
@@ -121,7 +121,7 @@ RISC-V has [quite a few ABIs](https://wiki.gentoo.org/wiki/RISC-V_ABIs), such as
 
 Bringing the discussion back to our `main` function, this means we know we can find the input parameter to `uart_put_char` in register `a0`, as that is what the ABI dictates.
 
-### Implementing a function prologue
+## Implementing a function prologue
 
 One other final thing to note before we begin our function prologue: we'll be implementing these functions as if we were a compiler with no optimizations enabled, which is `-O0` in the GCC world.  This means we'll ignore some easy optimizations and do _a lot_ of unnecessary work, such as unconditionally [spilling all registers](https://www.webster-dictionary.org/definition/register%20spilling) onto the stack, in the name of education.
 
@@ -249,7 +249,7 @@ After this instruction, our stack and registers will look like this:
 
 And that's the function prologue for `uart_put_char`!  In summary, we "allocated" a stack frame by moving the `sp` and `fp`, saved the caller's `fp` as required by the ABI, and sign-extended and saved our input parameter to the stack for later use in the function body.
 
-### What about `uart_get_char`?
+## What about `uart_get_char`?
 
 The function prologue for `uart_get_char` will be much simpler since it doesn't take any input parameters.  Here it is:
 
@@ -271,7 +271,7 @@ If you're like me and wondered why we allocate 16 bytes of space when we only ne
 
 > ...stacks tend to be allocated conservatively, which means they're aligned to the largest type that can be spilled to the stack. On RISC-V, this is 16 bytes.
 
-### Conclusion
+## Conclusion
 
 In this post, we've successfully created a pair of unoptimized function prologues that set us up for success in our upcoming implementation of a function body and epilogue for `uart_put_char` and `uart_get_char`.  We learned about several new RISC-V assembly instructions and explored various concepts such as ABIs, calling conventions, stack spilling, and more.  Hopefully you learned a lot — I certainly did!
 

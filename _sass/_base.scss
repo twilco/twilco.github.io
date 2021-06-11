@@ -31,6 +31,20 @@ div.indented-list-item {
   margin-left: 1rem;
 }
 
+/** Should have the same margin-bottom size as <p> elements do. */
+div.paragraph-sized-spacer {
+  margin-bottom: 15px;
+}
+
+.footer-link {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.footnotes {
+    margin-top: 15px;
+}
+
 p.indented-list-item-subtext {
   margin-left: 2.5rem;
 }
@@ -47,18 +61,10 @@ ol.bold > li > span.non-bold {
   margin-bottom: 10px;
 }
 
-.footnotes {
-  margin-top: 15px;
-}
-
-/** Should have the same margin-bottom size as <p> elements do. */
-div.paragraph-sized-spacer {
-  margin-bottom: 15px;
-}
-
-.footer-link {
-  display: inline-block;
-  margin-right: 15px;
+#table-of-contents {
+    font-size: 20px;
+    font-weight: 300;
+    margin-bottom: 5px;
 }
 
 /**
@@ -173,7 +179,7 @@ a {
  * Blockquotes
  */
 blockquote {
-    color: $grey-color;
+    color: #696868;
     border-left: 4px solid $grey-color-light;
     padding-left: $spacing-unit / 2;
     font-size: 18px;

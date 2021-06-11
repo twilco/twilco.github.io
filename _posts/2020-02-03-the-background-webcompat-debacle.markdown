@@ -7,11 +7,11 @@ description: A case study on web compatibility featuring the serialization of th
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 A few days ago, I was browsing the [CSS Backgrounds 3 spec](https://www.w3.org/TR/2017/CR-css-backgrounds-3-20171017) trying to determine the browser-default `background-color` of the viewport for use in [Kosmonaut](https://github.com/twilco/kosmonaut) (hint: it's system and browser dependent).
 
@@ -32,7 +32,7 @@ This intrigued me.  Why do authors expect the color to be first, and why does it
 
 Read on for a glimpse into [how the CSS sausage is made](https://en.wiktionary.org/wiki/how_the_sausage_gets_made), from CSS specification to (sometimes differing) browser implementation.  You can expect to learn about the CSS standards process, CSS serialization, web platform tests, and more, hopefully gaining some appreciation for the difficult task that is web compatibility.
 
-### First, a detour: how CSS comes to be
+## First, a detour: how CSS comes to be
 
 Having an understanding of how the CSS standards process works will help in understanding the `background` shorthand awkwardness, so let's go over it.
 
@@ -85,7 +85,7 @@ In summary: CSS syntax is standardized by the [CSSWG (CSS working group)](https:
 
 The above is largely a summary of [this article](https://css-tricks.com/css-standards-process/), so head there if you're looking for more detail.
 
-### Authors?  Serialization?
+## Authors?  Serialization?
 
 Before we continue, allow me to clarify some terms you might not be familiar with.
 
@@ -131,7 +131,7 @@ console.log(target.style['background'])
 
 The order in which properties are serialized could be very important.  For example, perhaps you are writing a JavaScript framework that parses the serialized styles of HTML elements in order to compute some new ones.  Different serializations in different browsers makes this much, much more difficult to do.
 
-### So why was this change made?  
+## So why was this change made?  
 
 Development of these specifications [happens on Github](https://github.com/w3c/csswg-drafts), so let's look at [the commit that introduced this change](https://github.com/w3c/csswg-drafts/commit/02fe11230e02279b495e4c5931be6ed5bab61c5c):
 
@@ -166,7 +166,7 @@ Feel free to read the full conversation yourself — for the sake of brevity, he
     </li>
 </ol>
 
-### But wait, there's more!
+## But wait, there's more!
 
 The 2015/2016 spec revision was not the only confusion surrounding `background` serialization — the topic [was also raised as an issue in the CSSWG repository](https://github.com/w3c/csswg-drafts/issues/418):
 
@@ -180,7 +180,7 @@ The 2015/2016 spec revision was not the only confusion surrounding `background` 
 
 And roughly two years after this issue was opened, [it was noted in a comment](https://github.com/w3c/csswg-drafts/issues/418#issuecomment-380951618) that this inconsistency across browsers still existed.  In fact, the linked comment shows all browsers serialized `background` wrong relative to the spec, each in different ways.
 
-### Web platform tests: the ultimate equalizer
+## Web platform tests: the ultimate equalizer
 
 There is a somewhat happy ending to this story, and it comes thanks to something called a _web platform test_ (WPT).  Quoting the [WPT project readme](https://github.com/web-platform-tests/wpt#the-web-platform-tests-project):
 
@@ -194,7 +194,7 @@ As you might now be guessing, [a WPT was created](https://github.com/web-platfor
 
 Making use of the aforementioned dashboard, we can view the [results of this WPT](https://wpt.fyi/results/css/css-backgrounds/parsing/background-valid.html?label=master&label=experimental&aligned&q=background-valid) for each browser — as is expected, all pass!
 
-### Summary
+## Summary
 
 In summary, web compatibility is hard.  Thank your local browser developer when you next get a chance :)
 

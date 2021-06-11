@@ -7,11 +7,11 @@ description: A post beginning implementation of a NS16550A UART driver for the Q
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 Welcome to the third post in the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.
 
@@ -23,7 +23,7 @@ If this is the first post in this series that you are tuning into and would like
 
 So, without further ado, let's begin.
 
-### What is a UART?
+## What is a UART?
 
 UART stands for "**U**niversal **A**synchronous **R**eceiver-**T**ransmitter", and is a physical hardware device (_not_ a protocol, à la [I2C](https://en.wikipedia.org/wiki/I%C2%B2C) or [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)) used to transmit and receive serial data.  Serial data transmission is the process of sending data sequentially, bit-by-bit.  In contrast, parallel data transmission is the process of sending multiple bits all at once.  This image from the [serial communication Wikipedia page](https://en.wikipedia.org/wiki/Serial_communication) illustrates the difference well:
 
@@ -37,7 +37,7 @@ You may also be familiar with USARTs (**U**niversal **S**ynchronous/**A**synchro
 
 UARTs and USARTs are all around you, even if you may not realize it.  They are built into nearly every modern microcontroller, our `virt` machine included.  These devices help power the traffic lights you yield to, the refrigerator that cools your food, and the satellites that orbit the Earth for years on end.
 
-### Setup
+## Setup
 
 Before we get down to writing our driver, we'll need a few things set up to ensure we can properly compile and link.  If you've worked through the previous two posts in this series you shouldn't have to do anything here beyond a `cd some/path/to/riscv-from-scratch`.
 
@@ -67,7 +67,7 @@ cp -a src/. work
 
 If you're curious to know more about this customized linker script and minimal C runtime, check out the [previous post]({% post_url 2019-04-27-riscv-from-scratch-2 %}).
 
-### Hardware layout in review
+## Hardware layout in review
 
 Before we begin writing our driver, we'll need a little bit more information.  How do we configure the UART that's onboard `virt`?  At what memory address can we find the receive and transmission buffers?
 
@@ -120,7 +120,7 @@ Our next property is `reg = <0x00 0x10000000 0x00 0x100>;`, which determines the
 
 This brings us to the last property in our `uart` node, `compatible = "ns16550a";`, which informs us what programming model our UART is compatible with.  Operating systems use this property to determine what device drivers it can use for a peripheral.  There are plentiful resources showing all the details necessary to implement a NS16550A-compatible UART, including [this one](https://www.lammertbies.nl/comm/info/serial-uart.html) which we'll be referencing from here on out.
 
-### Creating the basic skeleton of our driver
+## Creating the basic skeleton of our driver
 
 We have all we need to begin writing our driver, so let's begin.  Start by ensuring you're in the `riscv-from-scratch/work` directory we created in the setup section:
 
@@ -227,7 +227,7 @@ riscv64-unknown-elf-nm a.out
 0000000080000018 T uart_put_char
 {% endhighlight %}
 
-### Setting the base address
+## Setting the base address
 
 Again referencing [this resource](https://www.lammertbies.nl/comm/info/serial-uart.html), NS16550A UARTs have twelve registers, each accessible from some number byte offset of the base address.  In order to be able to get at these registers from our driver code, we'll first need to define a symbol representing this base address.  As we discovered from the decompiled devicetree file above, `riscv64-virt.dts`, the base address is located at `0x00 + 0x10000000 = 0x10000000`, as that is what is in the `reg` property:
 
@@ -260,7 +260,7 @@ SECTIONS
 
 With our `__uart_base_addr` established and codified as a symbol, we'll now have easy access to the NS16550A registers from within our driver file, `ns16550a.s`.
 
-### Next steps
+## Next steps
 
 Today we learned about UARTs and USARTs, the NS16550A specification, interrupts, and some additional devicetree properties.  We also have created a solid skeleton for our UART assembly driver, and have codified the `__uart_base_addr` as a symbol in our linker file for easy UART register access.
 

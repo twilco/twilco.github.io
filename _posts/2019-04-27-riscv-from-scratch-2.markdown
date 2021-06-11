@@ -7,11 +7,11 @@ description: A post describing how C programs get to the main function.  Devicet
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 Welcome to the second post in the *RISC-V from scratch* series!  As a quick recap, throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  In [the first post of this series]({% post_url 2019-03-10-riscv-from-scratch-1 %}), we introduced RISC-V, explained why it's important, set up the full GNU RISC-V toolchain, and built and ran a simple program on an emulated version of a RISC-V processor with the help of [SiFive's freedom-e-sdk](https://github.com/sifive/freedom-e-sdk).
 
@@ -19,7 +19,7 @@ The `freedom-e-sdk` made it trivial for us to compile, debug, and run any C prog
 
 In this post, we'll break free from the `freedom-e-sdk`.  We'll write and attempt to debug a simple C program of our own, unveil the magic hidden behind `main`, and examine the hardware layout of a `qemu` virtual machine.  We'll then examine and modify a linker script, write our own C runtime to get our program set up and running, and finally invoke GDB and step through our program.
 
-### Setup
+## Setup
 
 If you missed the previous post in this series and don't have `riscv-qemu` and the RISC-V toolchain installed and were hoping to follow along, jump to the ["QEMU and RISC-V toolchain setup"](/riscv-from-scratch/2019/03/10/riscv-from-scratch-1.html#qemu-and-risc-v-toolchain-setup) section (or in RISC-V assembly, `jal x0, qemu_and_toolchain_setup`) and complete that before moving on.
 
@@ -36,7 +36,7 @@ cd riscv-from-scratch/work
 
 As the name suggests, the `work` directory will serve as our working directory for this and future posts.
 
-### The naive approach 
+## The naive approach 
 
 Let's start our journey by using the text editor of your choice to create a simple C program called `add.c` that infinitely adds two numbers together.
 
@@ -142,7 +142,7 @@ There are several red flags here:
 
 These indicators, in combination with the fact that we never hit a breakpoint, signals we have done _something_ wrong.  But what is it?
 
-### Lifting the `-v`eil
+## Lifting the `-v`eil
 
 To figure out what's going on here, we need to take a detour and talk about how our simple C program actually works underneath the surface.  We have a function called `main` that does our simple addition, but what _is_ `main`, really?  Why must it be called `main` and not `origin`, or `begin`, or `entry`?  Conventionally we know that all executables start running at `main`, but what magic occurs to make this happen?
 
@@ -179,7 +179,7 @@ Knowing this, we see that GCC is linking multiple different `crt` object files w
 
 What exactly this bootstrapping of initial execution is depends on the platform in question, but generally it includes important tasks such as setting up the stack frame, passing along command line arguments, and calling into `main`.  Yes, we have _finally_ answered the question posed at the beginning of this section - it is `_start` who calls into our `main` function!
 
-### Finding our stack
+## Finding our stack
 
 We've solved one mystery, but you might be wondering how this gets us any closer to our original goal of being able to step through our simple C program with `gdb`.  There are a few problems we have left to address, but the first we have has to do with the way `crt0` is setting up our stack.
 
@@ -242,7 +242,7 @@ head -n8 riscv64-virt.dts
 
 And there we have it - it takes two 32-bit values (cells) to specify an address, and two 32-bit values to specify length.  This means, given `reg = <0x00 0x80000000 0x00 0x8000000>;`, our memory begins at `0x00 + 0x80000000` (`0x80000000`) and extends `0x00` + `0x8000000` (`0x8000000`) bytes, meaning it ends at `0x88000000`.  In more human-friendly terms, we can use a hexadecimal calculator to determine that our length of `0x8000000` bytes is 128 megabytes.
 
-### Link it up
+## Link it up
 
 Using `qemu` and `dtc`, we've successfully discovered where the RAM lives and how long it extends in our `virt` virtual machine.  We also know that `gcc` is linking a default `crt0` that isn't setting up our stack the way we need it to.  But what exactly do we do with this information, and how does it get us any closer to getting a running, debuggable program?
 
@@ -319,7 +319,7 @@ SECTIONS
 
 As you can see, we use the [PROVIDE command](https://web.archive.org/web/20190525173911/https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/4/html/Using_ld_the_GNU_Linker/assignments.html#PROVIDE) to define a symbol called `__stack_top`.  `__stack_top` will be accessible from any program linked with this script (assuming the program itself does not also define something named `__stack_top`).  We set the value of `__stack_top` to be `ORIGIN(RAM)`, which we know is `0x80000000`, plus `LENGTH(RAM)`, which we know is 128 megabytes (`0x8000000` bytes).  This means our `__stack_top` is set to `0x88000000`.
 
-### Stop!  <s>Hammertime</s> Runtime!
+## Stop!  <s>Hammertime</s> Runtime!
 <div style="margin-top: -30px; margin-bottom: 10px;"><sub><sup><sub><sup><a href="https://www.youtube.com/watch?v=otCpCn0l4Wo">https://www.youtube.com/watch?v=otCpCn0l4Wo</a></sup></sub></sup></sub></div>
 
 We finally have all we need to create a custom C runtime that works for us, so let's get started.  Create a file called `crt0.s` in the `riscv-from-scratch/work/` directory and insert the following:
@@ -433,7 +433,7 @@ _start:
 
 Our very last line is an assembler directive, `.end`, which simply marks the end of the assembly file.
 
-### Debugging, but for real this time
+## Debugging, but for real this time
 
 To recap, we've worked through many problems in our quest of debugging a simple C program on a RISC-V processor.  We first used `qemu` and `dtc` to find where our memory was located in the `virt` virtual RISC-V machine.  We then used this information to take manual control of the memory layout in our customized version of the default `riscv64-unknown-elf-ld` linker script, which then enabled us to accurately define a `__stack_top` symbol.  We finished by using this symbol in our own custom `crt0.s` that set up our stack and global pointers and finally called the `main` function.  Let's make use of all this work to complete our original goal of debugging our simple C program in GDB.
 
@@ -527,7 +527,7 @@ You'll notice from the above output that we have successfully hit a breakpoint o
 
 From here we can use `gdb` as normal - `s` to step to the next instruction, `info all-registers` to inspect the values inside our registers as our program executes, so on and so forth.  Experiment to your hearts content...we certainly worked hard enough to get here!
 
-### What's next
+## What's next
 
 In our next post, we'll continue to build on our knowledge of RISC-V assembly by beginning implementation of a driver for the UART onboard the `virt` QEMU machine.  Expect to learn about what a UART is and how it works, additional devicetree properties, the basic building blocks required to implement an NS16550A-compatible UART driver, and more.
 
@@ -535,6 +535,6 @@ Sound interesting?  This post has been released - [click here to check it out](h
 
 Thanks for reading!
 
-### Extra credit
+## Extra credit
 
 If you enjoyed this post and want event more, [Matt Godbolt gave a presentation titled "The Bits Between the Bits: How We Get to main()"](https://www.youtube.com/watch?v=dOfucXtyEsU) at CppCon2018 that approaches this subject from a few different angles than we took here in this post.  If you've worked through the entirety of this post you will definitely recognize some of the things he covers.  It's a good talk, so check it out!

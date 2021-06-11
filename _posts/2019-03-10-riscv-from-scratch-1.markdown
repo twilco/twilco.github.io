@@ -7,23 +7,23 @@ description: A post that discusses what RISC-V is and why it's important, teache
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 Welcome to part one of *RISC-V from scratch*!  Throughout *RISC-V from scratch* we will explore various low-level concepts (compilation and linking, primitive runtimes, assembly, and more), typically through the lens of RISC-V and its ecosystem.  I am a web developer by trade, and as such I'm not exposed to these things on a daily basis.  However, I think they are very interesting - hence this series!  Join me on a very much unstructured journey into the depths of all things low-level.
 
 In this first post, we'll talk a little bit about what RISC-V is and why it's important, set up a RISC-V toolchain, and finish up with building and running a simple C program on emulated RISC-V hardware.
 
-### So what is RISC-V?
+## So what is RISC-V?
 
 RISC-V is an open-source, free-to-use ISA that began as a project at UC-Berkeley in 2010.  The free-to-use aspect has been instrumental in its success and is quite a stark contrast to many other architectures.  Take ARM for example - in order to create an ARM-compatible processor, you must pay an upfront fee of [$1M - $10M as well as a 0.5% - 2% royalty fee per-chip](https://www.anandtech.com/show/7112/the-arm-diaries-part-1-how-arms-business-model-works/2).  This free and open model makes RISC-V an attractive option to many groups of people - hardware startups who can't foot the bill to create an ARM or other licensing-required processor, academic institutions, and (obviously) the open-source community.
 
 RISC-V's meteoric rise in popularity hasn't gone unnoticed.  [ARM launched a now-taken down website](https://abopen.com/news/rattled-arm-launches-anti-risc-v-marketing-campaign/) that attempted (rather unsuccessfully) to highlight supposed benefits of ARM over RISC-V.  RISC-V is backed by [a ton of major companies](https://riscv.org/membership/members/), including Google, Nvidia, and Western Digital.
 
-### QEMU and RISC-V toolchain setup
+## QEMU and RISC-V toolchain setup
 
 We won't be able to run any code on a RISC-V processor until we have an environment to do it in.  Fortunately, we don't need a physical RISC-V processor to do this - we'll instead be using [qemu](https://www.qemu.org).  To install `qemu`, follow the [instructions for your operating system here](https://www.qemu.org/download).  I'm using MacOS, so for me this was as easy as:
 
@@ -71,7 +71,7 @@ ln -s ~/usys/riscv/riscv64-unknown-elf-gcc-8.2.0-<date>-<version>/bin/riscv64-un
 
 Et voilà, we have a working RISC-V toolchain!  All our executables, such as `riscv64-unknown-elf-gcc`, `riscv64-unknown-elf-gdb`, `riscv64-unknown-elf-ld`, etc, are located in `~/usys/riscv/riscv64-unknown-elf-gcc-<date>-<version>/bin/`.
 
-### Hello, RISC-V!
+## Hello, RISC-V!
 
 **Update to this section as of May 26, 2019:** 
 
@@ -103,7 +103,7 @@ qemu-system-riscv32 -nographic -machine sifive_e -kernel software/hello/debug/he
 Hello, World!
 {% endhighlight %}
 
-### What's next?
+## What's next?
 
 This is a great start, but my goal with these blog posts is to truly [shave the yak](https://seths.blog/2005/03/dont_shave_that/), and while we have confirmed that we have a working toolchain, there is a lot of magic hidden by the niceties of the `freedom-e-sdk` examples.  Note that we didn't have to set up any linker files or startup code - SiFive's provided board-support linker scripts, various Makefiles, and the [freedom-metal library](https://github.com/sifive/freedom-metal) take care of this for us.  
 

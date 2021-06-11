@@ -7,11 +7,11 @@ description: An overview of my new 3900x PC build.  Compilation benchmarks of We
 ---
 
 {: .no_toc}
-#### Table of contents
+<div id="table-of-contents">Table of contents</div>
 1. TOC
 {:toc}
 
-### Introduction
+## Introduction
 
 I have spent a lot of time lately working on large C++ and Rust projects — for example, a [failed attempt](https://github.com/servo/servo/pull/24462) at correctly handling pending request state for HTML `<img>.complete` in Servo, and [an attempt](https://bugs.webkit.org/show_bug.cgi?id=195180) at implementing [`lh` and `rlh` units](https://www.w3.org/TR/css-values-4/#font-relative-lengths) in WebKit.  Unsurprisingly, even the smallest changes to either of these projects takes a lot of compute to recompile, making development cycles slower than ideal.  Any change to Servo was an ~8 minute recompile (the `script` module seems to be one of the more compute-intensive parts), and any change to WebKit was a 3-10 minute recompile depending on what I had touched.
 
@@ -21,13 +21,13 @@ Compilation is a function of computation over time.  Since I can't yet manipulat
 2. Temperature benchmarks before and after the introduction of a rear exhaust fan
 3. A comparison of WebKit compilation times in the new vs. the old
 
-### The build
+## The build
 
 In my old build, I was running an i5-6600k (4 cores, 4 hardware threads), 16GB of 2400mhz CL15 RAM (12.5ns memory access latency), and an Nvidia GTX 970.  You can check out my new build [here](https://pcpartpicker.com/user/twilco/saved/#view=6jsVcf).  If you don't want to click, the important points as far as compute goes are the introduction of a 3900x (12 cores, 24 hardware threads) and 32gb of 3600mhz CL16 RAM (8.88ns memory access latency).  The 3900x is [much faster](https://cpu.userbenchmark.com/Compare/Intel-Core-i5-6600K-vs-AMD-Ryzen-9-3900X/3503vs4044) than the i5-6600k.
 
 I don't play graphically intensive games, so I transplanted the GTX 970 from the old build to the new rather than upgrading.
 
-### What difference does one case fan make?
+## What difference does one case fan make?
 
 I am running 5 case fans in this build — two X2 GP-12 120mm static voltage fans came with the Meshify C and are run as top exhausts, two 140mm Noctua PWM NF-A14s are run as front intake fans, and one 120mm PWM Noctua NF-F12 as a rear exhaust.  This many fans is likely overkill...but at least I can be reasonably confident things will stay cool and quiet.
 
@@ -46,7 +46,7 @@ For these tests I'll be using [RealBench](https://rog.asus.com/tag/realbench/), 
 <div style="margin-top: -10px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">Prime95.</div>
 
 {: .no_toc}
-#### Results
+### Results
 
 <div style="margin-bottom: 15px;">
 <b>Without rear exhaust 120mm</b><br/>
@@ -68,7 +68,7 @@ For these tests I'll be using [RealBench](https://rog.asus.com/tag/realbench/), 
 
 Given a 1-2°C margin of error, the results are roughly the same.  In case you needed more confirmation that there are diminishing returns in adding more case fans, let me prove it again.  I don't think it's a complete waste, as more fans should be able to cool a non-peak load system more quietly by all spinning at an inaudible base-level RPM.
 
-### WebKit compilation comparison
+## WebKit compilation comparison
 
 For the following tests, I ran a clean build of WebKit with an empty `ccache`:
 
