@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+    
+    </style>
+</head>
+<body>
+    <input type="text" id="text-outside-iframe">
+
+    <script>
+        setTimeout(() => {
+            var iframe = document.createElement('iframe');
+            var html = '<body>Foo <input type="text" id="text-inside-iframe"> </body>';
+            iframe.srcdoc = html;
+            document.body.appendChild(iframe);
+
+        }, 3000);
+    </script>
+</body>
+</html>
+
