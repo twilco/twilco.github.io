@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+    body {
+        text-align: center;
+        font-size: 24px;
+    }
+
+    #show-score-container {
+        margin-top: 30px;
+    }
+
+    #show-score-container > button {
+        font-size: 32px;
+    }
+
+    .first-answer-wrapper {
+        margin-top: 15px;
+    }
+
+    /* Slider styles */
+    div.aria-widget-slider {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      height: 4em;
+
+      margin-left: auto;
+      margin-right: auto;
+      width: 300px;
+    }
+
+    div.aria-widget-slider .rail {
+      margin: 2px;
+      padding: 1px;
+      background-color: #eee;
+      border: 1px solid #888;
+      position: relative;
+      top: 2em;
+    }
+
+    div.aria-widget-slider .thumb  {
+      border: 1px solid #888;
+      border-top-color:  #666;
+      border-left-color: #666;
+      background-color: #DDD;
+      position: relative;
+    }
+
+    div.aria-widget-slider .value  {
+      width:      2em;
+      text-align: right;
+      position: absolute;
+    }
+
+    div.focus .thumb  {
+      border: 1px solid #444;
+      background-color: #888;
+      position: relative;
+    }
+
+    div.focus .rail {
+      background-color: #CCC;
+    }
+</style>
+<script src="customslider.js"></script>
+</head>
+<body>
+    <h1>Pop quiz</h1>
+    
+    <div>
+        <h3>Question one</h3>
+        How many slices are in 1/4 of a pizza with 8 total slices?
+
+        <div class="aria-widget-slider">
+          <div class="value">0</div>
+          <div class="rail" style="width: 300px;">
+            <div role="slider" class="thumb" aria-valuemin="0" aria-valuenow="0" aria-valuetext="0 slices" aria-valuemax="8"></div>
+          </div>
+        </div>
+    </div>
+
+    <div>
+        <h3>Question two</h3>
+        There are 4 apples in each basket.<br />
+        How many apples will be there in 5 baskets?
+
+        <div class="first-answer-wrapper">
+            <input type="radio" id="five-apples" name="apples">
+            <label for="five-apples">&nbsp;5&nbsp;</label>
+        </div>
+
+        <div>
+            <input type="radio" id="twenty-apples" name="apples">
+            <label for="twenty-apples">20</label>
+        </div>
+
+        <div>
+            <input type="radio" id="fourteen-apples" name="apples">
+            <label for="fourteen-apples">14</label>
+        </div>
+    </div>
+
+    <div>
+        <h3>Question three</h3>
+        In the number 289, the place value of 8 is:
+
+        <div class="first-answer-wrapper">
+            <input type="radio" id="ones" name="place">
+            <label for="ones">Ones</label>
+        </div>
+
+        <div>
+            <input type="radio" id="tens" name="place">
+            <label for="tens">Tens</label>
+        </div>
+
+        <div>
+            <input type="radio" id="hundreds" name="place">
+            <label for="hundreds">Hundreds</label>
+        </div>
+    </div>
+
+    <div id="show-score-container">
+        <button onclick="document.getElementById('show-score-modal').showModal()">Show score</button>
+    </div>
+
+    <dialog id="show-score-modal">
+        <form method="dialog">
+            You got all three questions correct.<br/>
+            Great work!<br/>
+            <button type="submit">Close</button>
+        </form>
+    </dialog>
+</body>
+</html>
+

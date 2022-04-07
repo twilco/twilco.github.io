@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+    body {
+        text-align: center;
+        font-size: 24px;
+    }
+
+    #show-score-container {
+        margin-top: 30px;
+    }
+
+    #show-score-container > button {
+        font-size: 32px;
+    }
+
+    .first-answer-wrapper {
+        margin-top: 15px;
+    }
+</style>
+</head>
+<body>
+    <h1>Pop quiz</h1>
+
+    <div>
+        <h3>Question one</h3>
+        How many slices are in 1/4 of a pizza with 8 total slices?
+        <div class="first-answer-wrapper">
+            <input type="radio" id="two-slices" name="pizza">
+            <label for="two-slices">Two</label>
+        </div>
+
+        <div>
+            <input type="radio" id="three-slices" name="pizza">
+            <label for="three-slices">Three</label>
+        </div>
+
+        <div>
+            <input type="radio" id="four-slices" name="pizza">
+            <label for="four-slices">Four</label>
+        </div>
+    </div>
+    
+    <div>
+        <h3>Question two</h3>
+        There are 4 apples in each basket.<br />
+        How many apples will be there in 5 baskets?
+
+        <div class="first-answer-wrapper">
+            <input type="radio" id="five-apples" name="apples">
+            <label for="five-apples">&nbsp;5&nbsp;</label>
+        </div>
+
+        <div>
+            <input type="radio" id="twenty-apples" name="apples">
+            <label for="twenty-apples">20</label>
+        </div>
+
+        <div>
+            <input type="radio" id="fourteen-apples" name="apples">
+            <label for="fourteen-apples">14</label>
+        </div>
+    </div>
+
+    <div>
+        <h3>Question three</h3>
+        In the number 289, the place value of 8 is:
+
+        <div class="first-answer-wrapper">
+            <input type="radio" id="ones" name="place">
+            <label for="ones">Ones</label>
+        </div>
+
+        <div>
+            <input type="radio" id="tens" name="place">
+            <label for="tens">Tens</label>
+        </div>
+
+        <div>
+            <input type="radio" id="hundreds" name="place">
+            <label for="hundreds">Hundreds</label>
+        </div>
+    </div>
+
+    <div id="show-score-container">
+        <button onclick="document.getElementById('show-score-modal').showModal()">Show score</button>
+    </div>
+
+    <dialog id="show-score-modal">
+        <form method="dialog">
+            You got all three questions correct.<br/>
+            Great work!<br/>
+            <button type="submit">Close</button>
+        </form>
+    </dialog>
+</body>
+</html>
+
