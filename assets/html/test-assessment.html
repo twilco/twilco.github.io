@@ -1,99 +1,385 @@
 <!DOCTYPE HTML>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>
+    :root {
+        --blue: rgb(0, 122, 255);
+        --radius: 10px;
+    }
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    html {
+        background-color: #f3f3f3;
+        opacity: 0.8;
+        background-size: 24px 24px;
+        background-image:  repeating-linear-gradient(0deg, #adadad, #adadad 1.2000000000000002px, #f3f3f3 1.2000000000000002px, #f3f3f3);
+    }
     body {
+        font-family: -apple-system;
+        font-size: 42px;
+        height: 89vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    input[type="radio"] {
+        margin-right: 10px;
+
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+
+        transition: 0.05s all linear;
+
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+
+        border: 2px solid gray;
+    }
+    input:checked { border: 8px solid var(--blue); }
+    .question { text-align: center; }
+    .question-box {
+        box-shadow:
+        0 2.8px 2.2px rgba(0, 0, 0, 0.034),
+        0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+        0 12.5px 10px rgba(0, 0, 0, 0.06),
+        0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+        0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+        0 100px 80px rgba(0, 0, 0, 0.12);
+  
+        min-height: 200px;
+        width: 90vw;
+        background: white;
+        border-radius: var(--radius);
+        padding-top: 10px;
+        padding-bottom: 42px;
+        padding-left: 50px;
+        padding-right: 50px;
+   }
+   .radio-label {
+       display: flex;
+       align-items: center;
+       border: 1px solid gray;
+       border-radius: var(--radius);
+       padding: 10px;
+   }
+   .radio-label {
+       margin-top: 20px;
+   }
+   #question-content {
+        display: grid;
+        place-content: center;
+   }
+   .question-header {
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid gray;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        margin-top: 25px;
+   }
+   #question-footer {
+        display: flex;
+        margin-top: 40px;
+   }
+   dialog {
+       width: 57vw;
+       height: 40vh;
+       margin: 20vh auto;
+       text-align: center;
+       padding: 30px;
+       border: none;
+       border-radius: var(--radius);
+   }
+   dialog form {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+   }
+   dialog::backdrop {
+       background-color: rgba(0, 0, 0, 0.8);
+   }
+   /* Button styles */
+   button {
+        display: inline-block;
+        border: none;
+        border-radius: var(--radius);
+        padding: 1rem 2rem;
+        font-size: 2.2rem;
+        font-weight: bold;
+        margin: 0;
+        text-decoration: none;
+        background: var(--blue);
+        color: #ffffff;
+        cursor: pointer;
         text-align: center;
-        font-size: 24px;
+        transition: background 250ms ease-in-out, 
+                    transform 150ms ease;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    button:active {
+        transform: scale(0.99);
+    }
+    #main-heading { text-align: center; }
+    .one-fourth-container { font-size: 2.5rem; }
+    #question-count-container {
+        margin-left: -20px;
+        margin-top: -10px;
+    }
+    #emoji-container {
+        font-size: 2.8rem;
+        margin-top: -15px;
+        margin-right: -20px;
     }
 
-    #show-score-container {
-        margin-top: 30px;
-    }
+    /* Slider styles */
+    div.aria-widget-slider {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      height: 4em;
 
-    #show-score-container > button {
-        font-size: 32px;
+      margin-left: auto;
+      margin-right: auto;
+      width: 60%;
     }
-
-    .first-answer-wrapper {
-        margin-top: 15px;
+    div.rail { width: 100%; }
+    div.aria-widget-slider .rail {
+      margin: 2px;
+      padding: 1px;
+      background-color: #eee;
+      border: 1px solid #888;
+      position: relative;
+      top: 2em;
+    }
+    div.aria-widget-slider .thumb  {
+      border: 1px solid #888;
+      border-top-color:  #666;
+      border-left-color: #666;
+      background-color: #DDD;
+      position: relative;
+    }
+    div.aria-widget-slider .value  {
+      width:      2em;
+      text-align: right;
+      position: absolute;
+    }
+    div.focus .thumb  {
+      border: 1px solid #444;
+      background-color: #888;
+      position: relative;
+    }
+    .thumb::before {
+        content: "🍕";
+        font-size: 58px;
+        margin-left: -27px;
+        margin-top: -22px;
+        position: absolute;
+    }
+    div.focus .rail {
+      background-color: #CCC;
     }
 </style>
+<script src="customslider.js"></script>
 </head>
 <body>
-    <h1>Pop quiz</h1>
-
-    <div>
-        <h3>Question one</h3>
-        How many slices are in 1/4 of a pizza with 8 total slices?
-        <div class="first-answer-wrapper">
-            <input type="radio" id="two-slices" name="pizza">
-            <label for="two-slices">Two</label>
-        </div>
-
-        <div>
-            <input type="radio" id="three-slices" name="pizza">
-            <label for="three-slices">Three</label>
-        </div>
-
-        <div>
-            <input type="radio" id="four-slices" name="pizza">
-            <label for="four-slices">Four</label>
-        </div>
-    </div>
-    
-    <div>
-        <h3>Question two</h3>
-        There are 4 apples in each basket.<br />
-        How many apples will be there in 5 baskets?
-
-        <div class="first-answer-wrapper">
-            <input type="radio" id="five-apples" name="apples">
-            <label for="five-apples">&nbsp;5&nbsp;</label>
-        </div>
-
-        <div>
-            <input type="radio" id="twenty-apples" name="apples">
-            <label for="twenty-apples">20</label>
-        </div>
-
-        <div>
-            <input type="radio" id="fourteen-apples" name="apples">
-            <label for="fourteen-apples">14</label>
-        </div>
-    </div>
-
-    <div>
-        <h3>Question three</h3>
-        In the number 289, the place value of 8 is:
-
-        <div class="first-answer-wrapper">
-            <input type="radio" id="ones" name="place">
-            <label for="ones">Ones</label>
-        </div>
-
-        <div>
-            <input type="radio" id="tens" name="place">
-            <label for="tens">Tens</label>
-        </div>
-
-        <div>
-            <input type="radio" id="hundreds" name="place">
-            <label for="hundreds">Hundreds</label>
-        </div>
-    </div>
-
-    <div id="show-score-container">
-        <button onclick="document.getElementById('show-score-modal').showModal()">Show score</button>
-    </div>
-
     <dialog id="show-score-modal">
         <form method="dialog">
-            You got all three questions correct.<br/>
-            Great work!<br/>
-            <button type="submit">Close</button>
+            <div style="width: 100%">
+                You got all six questions correct. Great work!
+            </div>
+            <div style="width: 100%">
+                <button type="submit" autofocus>Close</button>
+            </div>
         </form>
     </dialog>
+    <h2 id="main-heading">Ms. Z's 2nd Grade Pop Quiz</h2>
+    <div class="question-box">
+        <div class="question-header">
+            <div id="question-count-container"></div>
+            <div id="emoji-container" aria-hidden="true"></div>
+        </div>
+        <div id="question-content"></div>
+        <div id="question-footer"></div>
+    </div>
+    <script>
+        const nextQuestionHtml =`
+            <button id="next-question-button">Next question <span aria-hidden="true">➡️ </span></button> 
+        `
+        const pizzaHtml = `How many slices are in <span class="one-fourth-container">¼</span> of a pizza with 8 total slices?`
+        const pizzaSliderHtml = `
+            <div class="question">
+                ${pizzaHtml}
+                Drag the pizza to select your answer!
+            </div>
+
+            <div class="aria-widget-slider">
+              <div class="value">0</div>
+              <div class="rail">
+                <div role="slider" class="thumb" aria-valuemin="0" aria-valuenow="0" aria-valuetext="0 slices" aria-valuemax="8"></div>
+              </div>
+            </div>
+        `
+        const pizzaRadioHtml = `
+            <div class="question">
+                ${pizzaHtml} 
+            </div>
+
+            <label class="radio-label" for="two-slices">
+                <input type="radio" id="two-slices" name="pizza">
+                Two slices
+            </label>
+
+            <label class="radio-label" for="three-slices">
+                <input type="radio" id="three-slices" name="pizza">
+                Three slices
+            </label>
+
+            <label class="radio-label" for="four-slices">
+                <input type="radio" id="four-slices" name="pizza">
+                Four slices
+            </label>
+
+            <label class="radio-label" for="six-slices">
+                <input type="radio" id="six-slices" name="pizza">
+                Six slices
+            </label>
+        `
+        const translationQuestionHtml = `
+            <div class="question">
+              How do you say "the water" in Spanish?
+              <label class="radio-label" for="el-agua">
+                  <input type="radio" id="el-agua" name="translation">
+                  El agua
+              </label>
+              <label class="radio-label" for="la-abuela">
+                  <input type="radio" id="la-abuela" name="translation">
+                  La abuela
+              </label>
+              <label class="radio-label" for="la-abeja">
+                  <input type="radio" id="la-abeja" name="translation">
+                  La abeja
+              </label>
+              <label class="radio-label" for="el-arbol">
+                  <input type="radio" id="el-arbol" name="translation">
+                  El árbol
+              </label>
+            </div>
+        `
+        const lastQuestionFooterHtml = `
+            <button id="read-question-button">Read question <span aria-hidden="true">🔊</span></button>
+            <button id="show-score-button">Show score <span aria-hidden="true">✨</span></button>
+        `
+        const Screen = {
+            PizzaRadio: 'PizzaRadio',
+            PizzaSlider: 'PizzaSlider',
+            Translation: 'Translation',
+            TranslationWithAriaLabel: 'TranslationWithAriaLabel',
+        }
+        let currentScreen = Screen.PizzaRadio
+        switchTo(currentScreen)
+        function setupCommonPizzaQuestionContent() {
+            document.getElementById("question-count-container").innerHTML = "1 of 6"
+            document.getElementById("emoji-container").innerHTML = "🔢"
+            document.getElementById("question-footer").innerHTML = nextQuestionHtml
+            document.getElementById("next-question-button").addEventListener('click', (e) => { switchCurrentScreen() });
+            document.getElementById("question-footer").style.justifyContent = "center"
+        }
+        function setupFinalQuestionContent(ariaLabel) {
+            if (ariaLabel)
+                document.getElementById("show-score-modal").ariaLabel = ariaLabel
+            else
+                document.getElementById("show-score-modal").removeAttribute("aria-label")
+
+            document.getElementById("question-count-container").innerHTML = "6 of 6"
+            document.getElementById("emoji-container").innerHTML = "🇪🇸"
+            document.getElementById("question-content").innerHTML = translationQuestionHtml
+            document.getElementById("question-footer").innerHTML = lastQuestionFooterHtml
+            document.getElementById("question-footer").style.justifyContent = "space-between"
+            document.getElementById("show-score-button").addEventListener('click', (e) => { document.getElementById('show-score-modal').showModal() });
+            document.getElementById("read-question-button").addEventListener('click', (e) => {
+                var ssml = `
+                    <speak>
+                      How do you say ${wrapWithSSML("the water", "en-US")} in Spanish?
+                      ${wrapWithSSML("El agua", "es-ES")}
+                      ${wrapWithSSML("La abuela", "es-ES")}
+                      ${wrapWithSSML("La abeja", "es-ES")}
+                      ${wrapWithSSML("El árbol", "es-ES")}
+                    </speak>
+                `;
+
+                var utterance = new SpeechSynthesisUtterance(ssml);
+                window.speechSynthesis.speak(utterance);
+            });
+        }
+        function switchTo(screen) {
+            currentScreen = screen
+            switch (currentScreen) {
+                case Screen.PizzaRadio:
+                    setupCommonPizzaQuestionContent()
+                    document.getElementById("question-content").innerHTML = pizzaRadioHtml
+                break;
+                case Screen.PizzaSlider:
+                    setupCommonPizzaQuestionContent()
+                    document.getElementById("question-content").innerHTML = pizzaSliderHtml
+                    var sliders = document.getElementsByClassName('aria-widget-slider');
+                    [].forEach.call(sliders, function (slider) {
+                      if (slider && !slider.done) {
+                        var s = new aria.widget.slider(slider);
+                        s.initSlider();
+                      }
+                    });
+                break;
+                case Screen.Translation:
+                    setupFinalQuestionContent()
+                break;
+                case Screen.TranslationWithAriaLabel:
+                    setupFinalQuestionContent("You got all six questions correct. Great work!")
+                break;
+            }
+        }
+
+        function wrapWithSSML(phrase, lang) {
+            const ssml = `
+                <break time="1s"/>
+                <prosody rate="slow">
+                    <lang xml:lang="${lang}">
+                        ${phrase}
+                    </lang>
+                </prosody>
+                <break time="1s"/>
+            ` 
+            console.log(ssml)
+            return ssml
+        }
+        function switchCurrentScreen() {
+            switch (currentScreen) {
+                case Screen.PizzaRadio:
+                    switchTo(Screen.PizzaSlider)
+                break;
+                case Screen.PizzaSlider:
+                    switchTo(Screen.Translation)
+                break;
+                case Screen.Translation:
+                    switchTo(Screen.TranslationWithAriaLabel)
+                break;
+                case Screen.TranslationWithAriaLabel:
+                    switchTo(Screen.PizzaRadio)
+                break;
+            }
+
+        }
+        document.getElementById("emoji-container").addEventListener('click', (e) => { switchCurrentScreen() });
+        document.getElementById("main-heading").addEventListener('click', (e) => { switchCurrentScreen() });
+    </script>
 </body>
 </html>
 

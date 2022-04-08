@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+</head>
+<body>
+
+<button id="press-to-speak">Press to speak</button>
+
+<script>
+var a = `
+<speak>
+  What does the Spanish word
+    <break time="1s"/><prosody rate="slow"><lang xml:lang="es-ES">casa</lang></prosody><break time="1s"/>
+  mean in English?
+</speak>
+`;
+
+var b = `
+<speak>
+  <p>
+    <s>You have 4 new messages.</s>
+    <s>The first is from Stephanie Williams and arrived at <break/> 3:45pm.
+    </s>
+    <s>
+      The subject is <prosody rate="-20%">ski trip</prosody>
+    </s>
+  </p>
+</speak>
+`
+
+var utterThis = new SpeechSynthesisUtterance(a);
+// utterThis.voice = window.speechSynthesis.getVoices()[0];
+document.getElementById("press-to-speak").addEventListener("click", () => {
+    window.speechSynthesis.speak(utterThis);
+});
+
+</script>
+</body>
+</html>
+

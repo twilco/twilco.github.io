@@ -1,20 +1,18 @@
 <!DOCTYPE HTML>
 <html>
 <head>
+<meta charset="UTF-8">
 <style>
     body {
         text-align: center;
         font-size: 24px;
     }
-
     #show-score-container {
         margin-top: 30px;
     }
-
     #show-score-container > button {
         font-size: 32px;
     }
-
     .first-answer-wrapper {
         margin-top: 15px;
     }
@@ -29,7 +27,6 @@
       margin-right: auto;
       width: 300px;
     }
-
     div.aria-widget-slider .rail {
       margin: 2px;
       padding: 1px;
@@ -38,7 +35,6 @@
       position: relative;
       top: 2em;
     }
-
     div.aria-widget-slider .thumb  {
       border: 1px solid #888;
       border-top-color:  #666;
@@ -46,19 +42,23 @@
       background-color: #DDD;
       position: relative;
     }
-
     div.aria-widget-slider .value  {
       width:      2em;
       text-align: right;
       position: absolute;
     }
-
     div.focus .thumb  {
       border: 1px solid #444;
       background-color: #888;
       position: relative;
     }
-
+    .thumb::before {
+        content: "🍕";
+        font-size: 44px;
+        margin-left: -30px;
+        margin-top: -16px;
+        position: absolute;
+    }
     div.focus .rail {
       background-color: #CCC;
     }
@@ -71,6 +71,8 @@
     <div>
         <h3>Question one</h3>
         How many slices are in 1/4 of a pizza with 8 total slices?
+        <br />
+        Grab the pizza slice and drag to select your answer!
 
         <div class="aria-widget-slider">
           <div class="value">0</div>
