@@ -258,7 +258,7 @@ aria.widget.slider.prototype.updateThumbPosition = function () {
 
     console.log(this.valueNow);
   this.thumb.setAttribute('aria-valuenow', this.valueNow);
-  this.thumb.setAttribute('aria-valuetext', `${this.valueNow} slices`);
+  this.thumb.setAttribute('aria-valuetext', `${this.valueNow} ${this.valueNow === 1 ? "slice" : "slices"}`);
 
   var pos = Math.round(
     (this.valueNow * this.sliderWidth) / (this.valueMax - this.valueMin)
