@@ -91,7 +91,7 @@
    dialog {
        width: 57vw;
        height: 40vh;
-       margin: 20vh auto;
+       margin: 26vh auto;
        text-align: center;
        padding: 30px;
        border: none;
@@ -129,7 +129,11 @@
     button:active {
         transform: scale(0.99);
     }
-    #main-heading { text-align: center; }
+    #main-heading {
+        text-align: center;
+        margin-bottom: 1px;
+        font-size: 1.7em;
+    }
     .one-fourth-container { font-size: 2.5rem; }
     #question-count-container {
         margin-left: -20px;
@@ -177,15 +181,25 @@
       background-color: #888;
       position: relative;
     }
-    .thumb::before {
+    /*.thumb::before {
         content: "🍕";
         font-size: 58px;
         margin-left: -27px;
         margin-top: -22px;
         position: absolute;
-    }
+    }*/
     div.focus .rail {
       background-color: #CCC;
+    }
+    #pizza-input {
+        background-image: url("../img/Pizza-4.png");
+        background-repeat: no-repeat;
+        background-size: contain;
+        width: 419px;
+        height: 406px;
+        margin-top: 35px;
+        margin-left: auto;
+        margin-right: auto;
     }
 </style>
 <script src="customslider.js"></script>
@@ -194,14 +208,14 @@
     <dialog id="show-score-modal">
         <form method="dialog">
             <div style="width: 100%">
-                You got all six questions correct. Great work!
+                <span id="dialog-content">You got all six questions correct. Great work!</span>
             </div>
             <div style="width: 100%">
                 <button type="submit" autofocus>Close</button>
             </div>
         </form>
     </dialog>
-    <h2 id="main-heading">Ms. Z's 2nd Grade Pop Quiz</h2>
+    <h1 id="main-heading">Pop Quiz</h1>
     <div class="question-box">
         <div class="question-header">
             <div id="question-count-container"></div>
@@ -218,15 +232,17 @@
         const pizzaSliderHtml = `
             <div class="question">
                 ${pizzaHtml}
-                Drag the pizza to select your answer!
+                Tap the pizza to add and remove slices!
             </div>
 
-            <div class="aria-widget-slider">
-              <div class="value">0</div>
-              <div class="rail">
-                <div role="slider" class="thumb" aria-valuemin="0" aria-valuenow="0" aria-valuetext="0 slices" aria-valuemax="8"></div>
-              </div>
-            </div>
+            <div id="pizza-input" role="slider" tabindex="0" aria-valuemin="0" aria-valuenow="4" aria-valuetext="4 slices" aria-valuemax="8"></div>
+
+            <!-- <div class="aria-widget-slider"> -->
+            <!--   <div class="value">0</div> -->
+            <!--   <div class="rail"> -->
+            <!--     <div role="slider" class="thumb" aria-valuemin="0" aria-valuenow="0" aria-valuetext="0 slices" aria-valuemax="8"></div> -->
+            <!--   </div> -->
+            <!-- </div> -->
         `
         const pizzaRadioHtml = `
             <div class="question">
@@ -293,11 +309,11 @@
             document.getElementById("next-question-button").addEventListener('click', (e) => { switchCurrentScreen() });
             document.getElementById("question-footer").style.justifyContent = "center"
         }
-        function setupFinalQuestionContent(ariaLabel) {
-            if (ariaLabel)
-                document.getElementById("show-score-modal").ariaLabel = ariaLabel
+        function setupFinalQuestionContent(labelledById) {
+            if (labelledById)
+                document.getElementById("show-score-modal").setAttribute("aria-labelledby", labelledById)
             else
-                document.getElementById("show-score-modal").removeAttribute("aria-label")
+                document.getElementById("show-score-modal").removeAttribute("aria-labelledby")
 
             document.getElementById("question-count-container").innerHTML = "6 of 6"
             document.getElementById("emoji-container").innerHTML = "🇪🇸"
@@ -308,17 +324,27 @@
             document.getElementById("read-question-button").addEventListener('click', (e) => {
                 var ssml = `
                     <speak>
-                      How do you say ${wrapWithSSML("the water", "en-US")} in Spanish?
+                      How do you say ${wrapWithSSML("the water", "en-US", false)} in Spanish?
                       ${wrapWithSSML("El agua", "es-ES")}
+                      ${wrapWithSSML("El agua", "es-MX")}
                       ${wrapWithSSML("La abuela", "es-ES")}
+                      ${wrapWithSSML("La abuela", "es-MX")}
                       ${wrapWithSSML("La abeja", "es-ES")}
+                      ${wrapWithSSML("La abeja", "es-MX")}
                       ${wrapWithSSML("El árbol", "es-ES")}
+                      ${wrapWithSSML("El árbol", "es-MX")}
                     </speak>
                 `;
-
                 var utterance = new SpeechSynthesisUtterance(ssml);
                 window.speechSynthesis.speak(utterance);
             });
+        }
+        var currentSliceCount = 4;
+        function updatePizzaControl() {
+            const pizzaInput = document.getElementById("pizza-input");
+            pizzaInput.style.backgroundImage = `url(../img/Pizza-${currentSliceCount}.png)`;
+            pizzaInput.ariaValueNow = `${currentSliceCount}`;
+            pizzaInput.ariaValueText = `${currentSliceCount} ${currentSliceCount === 1 ? "slice" : "slices"}`;
         }
         function switchTo(screen) {
             currentScreen = screen
@@ -337,30 +363,47 @@
                         s.initSlider();
                       }
                     });
+
+                    document.getElementById("pizza-input").addEventListener("click", (event) => {
+                         console.log(
+                            "clientX: " + event.clientX +
+                            " - clientY: " + event.clientY);
+                    });
+                    document.getElementById("pizza-input").addEventListener("keydown", (event) => {
+                        console.log(`Keydown: ${event.key}, ${event.code}`);
+                        if (event.key === "ArrowLeft")
+                            currentSliceCount = Math.max(currentSliceCount - 1, 1);
+                        else if (event.key === "ArrowRight")
+                            currentSliceCount = Math.min(currentSliceCount + 1, 6);
+                        else
+                            return;
+
+                        updatePizzaControl();
+                    });
                 break;
                 case Screen.Translation:
                     setupFinalQuestionContent()
                 break;
                 case Screen.TranslationWithAriaLabel:
-                    setupFinalQuestionContent("You got all six questions correct. Great work!")
+                    setupFinalQuestionContent("dialog-content")
                 break;
             }
         }
 
-        function wrapWithSSML(phrase, lang) {
+        function wrapWithSSML(phrase, lang, insertBreak = true) {
             const ssml = `
-                <break time="1s"/>
-                <prosody rate="slow">
+                ${insertBreak ? "<break time='80ms'/>" : ""}
+                <prosody rate="80%">
                     <lang xml:lang="${lang}">
                         ${phrase}
                     </lang>
                 </prosody>
-                <break time="1s"/>
             ` 
             console.log(ssml)
             return ssml
         }
         function switchCurrentScreen() {
+            console.log(window.speechSynthesis.getVoices().map((v) => v.lang));
             switch (currentScreen) {
                 case Screen.PizzaRadio:
                     switchTo(Screen.PizzaSlider)
