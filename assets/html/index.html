@@ -211,7 +211,8 @@
                 <span id="dialog-content">You got all six questions correct. Great work!</span>
             </div>
             <div style="width: 100%">
-                <button type="submit" autofocus>Close</button>
+                <!-- <button id="modal-close-button" autofocus tabindex="0">Close</button> -->
+                <button id="modal-close-button" type="submit" autofocus>Close</button>
             </div>
         </form>
     </dialog>
@@ -225,6 +226,37 @@
         <div id="question-footer"></div>
     </div>
     <script>
+        function setVoiceOverFocus(element) {
+          var focusInterval = 1; // ms, time between function calls
+          var focusTotalRepetitions = 100; // number of repetitions
+
+          element.setAttribute('tabindex', '0');
+          element.blur();
+
+          var focusRepetitions = 0;
+          var interval = window.setInterval(function() {
+            element.focus();
+            focusRepetitions++;
+            if (focusRepetitions >= focusTotalRepetitions) {
+              window.clearInterval(interval);
+            }
+          }, focusInterval);
+        }
+
+        document.getElementById("modal-close-button").addEventListener("click", () => {
+            document.getElementById("show-score-modal").close();
+            // setVoiceOverFocus(document.getElementById("show-score-button"))
+            // let iterations = 0;
+            // const showScoreButton = document.getElementById("show-score-button");
+            // console.log(showScoreButton);
+            // while (true) {
+            //     console.log(document.activeElement)
+            //     showScoreButton.focus();
+            //     if (iterations >= 500)
+            //         break;
+            //     iterations += 1;
+            // }
+        });
         const nextQuestionHtml =`
             <button id="next-question-button">Next question <span aria-hidden="true">➡️ </span></button> 
         `
@@ -325,13 +357,9 @@
                 var ssml = `
                     <speak>
                       How do you say ${wrapWithSSML("the water", "en-US", false)} in Spanish?
-                      ${wrapWithSSML("El agua", "es-ES")}
                       ${wrapWithSSML("El agua", "es-MX")}
-                      ${wrapWithSSML("La abuela", "es-ES")}
                       ${wrapWithSSML("La abuela", "es-MX")}
-                      ${wrapWithSSML("La abeja", "es-ES")}
                       ${wrapWithSSML("La abeja", "es-MX")}
-                      ${wrapWithSSML("El árbol", "es-ES")}
                       ${wrapWithSSML("El árbol", "es-MX")}
                     </speak>
                 `;
