@@ -4,7 +4,6 @@ description: > # this means to ignore newlines until "baseurl:"
 baseurl: "" # the subpath of your site, e.g. /blog/
 url: "https://twilco.github.io" # the base hostname & protocol for your site
 github_username: twilco
-twitter_username: tylerwilcock
 future: true # enable display of posts with their dates set in the future
 
 plugins:
