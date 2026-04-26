@@ -18,13 +18,13 @@ A few days ago, I was browsing the [CSS Backgrounds 3 spec](https://www.w3.org/T
 In doing so, I stumbled across this note in the changelog:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/background_serialization/bg_serialization_change.png">![Image saying: (Header) Changes since the 9 September 2014 Candidate Recommendation (Bullet list item) Moved background-color (hyperlink) component of final-bg-layer (hyperlink) to the front for serialization because authors seem to expect this even though it doesn't make sense?](/assets/img/background_serialization/bg_serialization_change.png)</a>
+<a href="/assets/img/background_serialization/bg_serialization_change.png">![CSS Backgrounds 3 spec changelog: (Header) Changes since the 9 September 2014 Candidate Recommendation (Bullet list item) Moved background-color (hyperlink) component of final-bg-layer (hyperlink) to the front for serialization because authors seem to expect this even though it doesn't make sense?](/assets/img/background_serialization/bg_serialization_change.png)</a>
 {:refdef}
 
 Clicking into the <code>&lt;final-bg-layer&gt;</code> hyperlink, we discover this revision changed the serialization order of the `background` shorthand property:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/background_serialization/background_shorthand_definition.png">![Image showing the spec definition of the background shorthand property.  Highlighted in red is the value for the property: bg-layer#, final-bg-layer.  Further down in the image, the definition of final-bg-layer is also highlighted in red: background-color || bg-image || bg-position](/assets/img/background_serialization/background_shorthand_definition.png)</a>
+<a href="/assets/img/background_serialization/background_shorthand_definition.png">![Spec definition of the background shorthand property.  Highlighted in red is the value for the property: bg-layer#, final-bg-layer.  Further down in the image, the definition of final-bg-layer is also highlighted in red: background-color || bg-image || bg-position](/assets/img/background_serialization/background_shorthand_definition.png)</a>
 {:refdef}
 <div style="margin-top: -20px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">The <span style="font-style: normal"><code>#</code></span> next to <span style="font-style: italic;"><code>&lt;bg-layer&gt;</code></span> means "0 or more" non-final background layers</div>
 
@@ -136,7 +136,7 @@ The order in which properties are serialized could be very important.  For examp
 Development of these specifications [happens on Github](https://github.com/w3c/csswg-drafts), so let's look at [the commit that introduced this change](https://github.com/w3c/csswg-drafts/commit/02fe11230e02279b495e4c5931be6ed5bab61c5c):
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/background_serialization/background_serialization_commit.png">![Image of commit on GitHub making the revision to the background serialization spec.  Commit message is: Move bg-color to beginning of final layer per (hyperlink to meeting notes) even though it is silly (as leaverou mentions in the minutes)](/assets/img/background_serialization/background_serialization_commit.png)</a>
+<a href="/assets/img/background_serialization/background_serialization_commit.png">![GitHub commit by fantasai on Sep 19, 2016: Move bg-color to beginning of final layer per (hyperlink to meeting notes) even though it is silly (as leaverou mentions in the minutes)](/assets/img/background_serialization/background_serialization_commit.png)</a>
 {:refdef}
 
 Clicking on the [pictured hyperlink](https://lists.w3.org/Archives/Public/www-style/2015Jan/0406.html) takes us to a set of CSSWG telecon meeting notes from 2015.  Search for "background serialization" to find the bit we're interested in.
@@ -171,11 +171,11 @@ Feel free to read the full conversation yourself — for the sake of brevity, he
 The 2015/2016 spec revision was not the only confusion surrounding `background` serialization — the topic [was also raised as an issue in the CSSWG repository](https://github.com/w3c/csswg-drafts/issues/418):
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/background_serialization/cssom_define_ser.png">![GitHub issue with the title: cssom define serialization for background shorthand](/assets/img/background_serialization/cssom_define_ser.png)</a>
+<a href="/assets/img/background_serialization/cssom_define_ser.png">![w3c/csswg-drafts issue #418 by Manishearth: [cssom] Define serialization for background shorthand](/assets/img/background_serialization/cssom_define_ser.png)</a>
 {:refdef}
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/background_serialization/serialization_questions.png">![Part of the text of the GitHub issue described above.  Text is: Firefox seems to only serialize when all set longhands are of the same length(and when it does, it serializes to all default values).  Chrome always serializes, and just prints out whatever was set.  Paragraph break.  This should probably be specced.  Important questions to answer.  Bullet list item: Should we truncate everything to the length of the background-image longhand?  Bullet list item: For underspecified longhands, should we cycle through them to make them the same length as background-image?  Bullet list item: Should we be explicit (like Firefox) or implicit (like Chrome)?  Bullet list item: Is serialization (of a shorthand) allowed to fail if parsing hasn't?](/assets/img/background_serialization/serialization_questions.png)</a>
+<a href="/assets/img/background_serialization/serialization_questions.png">![Body of GitHub issue #418 noting that Firefox and Chrome serialize the background shorthand differently, and listing open questions about truncation, longhand cycling, explicit vs. implicit serialization, and whether serialization can fail when parsing hasn't](/assets/img/background_serialization/serialization_questions.png)</a>
 {:refdef}
 
 And roughly two years after this issue was opened, [it was noted in a comment](https://github.com/w3c/csswg-drafts/issues/418#issuecomment-380951618) that this inconsistency across browsers still existed.  In fact, the linked comment shows all browsers serialized `background` wrong relative to the spec, each in different ways.

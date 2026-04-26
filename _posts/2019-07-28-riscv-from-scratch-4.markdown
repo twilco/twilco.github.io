@@ -149,7 +149,7 @@ uart_put_char:
 And here's what the stack and registers might look like right before our `uart_put_char` function prologue:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/pre-function-prologue.png">![serial and parallel transmission contrasted](/assets/img/riscv-from-scratch/pt-4/pre-function-prologue.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/pre-function-prologue.png">![Stack and register state before the uart_put_char function prologue: fp points to __stack_top at 0x88000000, sp points to 0x87fffff0, and a0 holds the input value 0x2](/assets/img/riscv-from-scratch/pt-4/pre-function-prologue.png)</a>
 {: refdef}
 
 Note that the `a0` register has the `0x2` value we passed from `main` above.  Also, `sp` and `fp` have values set by whatever calls this function - I have assigned them realistic values for the sake of demonstration.
@@ -164,7 +164,7 @@ addi sp,sp,-32
 As you may recall, the stack pointer points to the next free-for-use byte on the stack.  By moving this down by 32 bytes, we're "allocating" space for ourselves on the stack, or creating a stack frame, for later use in this function.  Here's what the stack and registers would look like following this instruction:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/move-sp-down-32-bytes.png">![registers and stack after moving stack pointer down 32 bytes](/assets/img/riscv-from-scratch/pt-4/move-sp-down-32-bytes.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/move-sp-down-32-bytes.png">![Stack and register state after addi sp,sp,-32: sp has moved down to 0x87ffffd0, creating a 32-byte stack frame below fp](/assets/img/riscv-from-scratch/pt-4/move-sp-down-32-bytes.png)</a>
 {: refdef}
 
 All the space between the old stack pointer position (`0x87fffff0`) and the new stack pointer position (`0x87ffffd0`) is this functions stack frame.
@@ -183,7 +183,7 @@ So, to acommodate that requirement we make use of the `sd` instruction, which st
 Here's what the stack would look like after executing this instruction:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/save-callers-frame-pointer.png">![registers and stack after saving callers frame pointer](/assets/img/riscv-from-scratch/pt-4/save-callers-frame-pointer.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/save-callers-frame-pointer.png">![Stack and register state after sd fp,24(sp): the caller's frame pointer value 0x88000000 is now stored at address 0x87ffffe8 on the stack](/assets/img/riscv-from-scratch/pt-4/save-callers-frame-pointer.png)</a>
 {: refdef}
 
 As you can see, we now have the caller's frame pointer saved in `0x87ffffe8`, specifically in the 8 bytes from `0x87fffff0` to `0x87ffffe8`.  We'll need this later in the function epilogue when we restore this value before returning control to the caller.
@@ -200,7 +200,7 @@ As you can see in the previous image, the frame pointer is still set to caller's
 Following this instruction, the stack and registers now look like this:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/move-fp-to-stack-frame-base.png">![registers and stack after moving stack pointer down 32 bytes](/assets/img/riscv-from-scratch/pt-4/move-fp-to-stack-frame-base.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/move-fp-to-stack-frame-base.png">![Stack and register state after addi fp,sp,32: fp now points to the base of the current stack frame at 0x87fffff0, completing the stack frame setup](/assets/img/riscv-from-scratch/pt-4/move-fp-to-stack-frame-base.png)</a>
 {: refdef}
 
 Our next instruction is this:
@@ -228,7 +228,7 @@ Coming back to our instruction `mv a5,a0`, `mv` is a pseudoinstruction that expa
 Following this instruction, the stack and registers now look like this:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/move-and-sign-extend-input.png">![registers and stack after moving stack pointer down 32 bytes](/assets/img/riscv-from-scratch/pt-4/move-and-sign-extend-input.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/move-and-sign-extend-input.png">![Stack and register state after mv a5,a0: the input parameter 0x2 has been copied from a0 to a5 via sign extension](/assets/img/riscv-from-scratch/pt-4/move-and-sign-extend-input.png)</a>
 {: refdef}
 
 This brings us to the final instruction in our function prologue:
@@ -244,7 +244,7 @@ sb a5,-17(s0)
 After this instruction, our stack and registers will look like this:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-4/store-input-byte.png">![registers and stack after moving stack pointer down 32 bytes](/assets/img/riscv-from-scratch/pt-4/store-input-byte.png)</a>
+<a href="/assets/img/riscv-from-scratch/pt-4/store-input-byte.png">![Stack and register state after sb a5,-17(s0): the input byte 0x2 has been spilled from a5 to the stack at address 0x87fffdf](/assets/img/riscv-from-scratch/pt-4/store-input-byte.png)</a>
 {: refdef}
 
 And that's the function prologue for `uart_put_char`!  In summary, we "allocated" a stack frame by moving the `sp` and `fp`, saved the caller's `fp` as required by the ABI, and sign-extended and saved our input parameter to the stack for later use in the function body.

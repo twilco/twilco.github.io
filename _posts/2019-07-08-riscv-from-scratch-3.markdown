@@ -28,7 +28,7 @@ So, without further ado, let's begin.
 UART stands for "**U**niversal **A**synchronous **R**eceiver-**T**ransmitter", and is a physical hardware device (_not_ a protocol, à la [I2C](https://en.wikipedia.org/wiki/I%C2%B2C) or [SPI](https://en.wikipedia.org/wiki/Serial_Peripheral_Interface)) used to transmit and receive serial data.  Serial data transmission is the process of sending data sequentially, bit-by-bit.  In contrast, parallel data transmission is the process of sending multiple bits all at once.  This image from the [serial communication Wikipedia page](https://en.wikipedia.org/wiki/Serial_communication) illustrates the difference well:
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif">![serial and parallel transmission contrasted](/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif)</a>
+<a href="/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif">![Diagram comparing parallel and serial data transmission — parallel sends all 8 bits (D0-D7) simultaneously over separate lines, while serial sends them sequentially one bit at a time over a single line](/assets/img/riscv-from-scratch/pt-3/Parallel_and_Serial_Transmission.gif)</a>
 {:refdef}
 
 UARTs never specify a rate at which data should be received or transmitted (also called a *clock rate* or *clock signal*), which is what makes them asynchronous rather than synchronous.  Instead, transmitting UARTs frame each packet of data with start and stop bits, which informs receiving UARTs of when to start and stop reading data.

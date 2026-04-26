@@ -36,12 +36,12 @@ All of the parts in this build arrived within a week of when I ordered them, min
 For these tests I'll be using [RealBench](https://rog.asus.com/tag/realbench/), since that stresses both the GPU and CPU in a "realistic" fashion, and [Prime95](https://www.mersenne.org/download/), which focuses on CPU stress-testing.  All of these tests were run with every PWM fan set to the "Silent" fan profile, as that is closer to what I would actually use (though I will be setting up custom fan profiles in the end).  These tests were run within hours of each other, so ambient temperature outside the case should be roughly the same between each test.
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/new-pc-build/RealBenchInAction.png">![Image showing RealBench running.](/assets/img/new-pc-build/RealBenchInAction.png)</a>
+<a href="/assets/img/new-pc-build/RealBenchInAction.png">![RealBench benchmark application running a stress test, showing the ASUS ROG interface with a 3D chrome sphere render and a scrolling log output with the test progress](/assets/img/new-pc-build/RealBenchInAction.png)</a>
 {:refdef}
 <div style="margin-top: -10px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">RealBench in action.  Note I ended up running these tests for a total of an hour.</div>
 
 {:refdef: style="text-align: center;"}
-<a href="/assets/img/new-pc-build/Prime95.png">![Image showing Prime95 about to run.](/assets/img/new-pc-build/Prime95.png)</a>
+<a href="/assets/img/new-pc-build/Prime95.png">![Prime95 torture test dialog configured with 24 threads, Blend mode selected, FFT sizes 4 to 8192, and AVX-512 disabled](/assets/img/new-pc-build/Prime95.png)</a>
 {:refdef}
 <div style="margin-top: -10px; margin-bottom: 10px; text-align: center; font-style: italic; font-size: .85rem">Prime95.</div>
 
